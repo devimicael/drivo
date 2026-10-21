@@ -1,0 +1,13 @@
+# Exclui artefatos locais do contexto de build (raiz do monorepo).
+# Sem isto, o COPY das apps sobrescreve o node_modules limpo da imagem
+# com os links/junctions do Windows (quebra: MODULE_NOT_FOUND prisma).
+
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+.git
+apps/*/src/generated

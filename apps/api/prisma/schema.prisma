@@ -1,0 +1,55 @@
+// Modelo por data-model.md §5. Referência transformada em migration inicial
+// pelo Dia 1 (T008). URL do banco vive em prisma.config.ts (Prisma 7).
+// Sem entidade de CRLV/arquivo/imageUrl — RF17, RN-02. Sem `combustivel` (P-08 fechado).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(120)
+  email        String   @unique @db.VarChar(320)
+  passwordHash String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vehicles Vehicle[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  placa         String   @db.VarChar(10)
+  marca         String   @db.VarChar(60)
+  modelo        String   @db.VarChar(80)
+  ano           Int
+  chassi        String   @db.VarChar(17)
+  renavam       String?  @db.VarChar(20)
+  cor           String?  @db.VarChar(40)
+  cilindrada    Int?
+  tipo          String?  @db.VarChar(40)
+  uf            String?  @db.Char(2)
+  anoFabricacao Int?
+  origem        String   @default("MANUAL") @db.VarChar(10)
+  modeloBusca   String   @db.VarChar(80)
+  marcaBusca    String   @db.VarChar(60)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placa], name: "user_placa_unique")
+  @@index([userId], name: "vehicles_userId_idx")
+  @@index([userId, modeloBusca], name: "vehicles_userId_modelo_idx")
+  @@index([userId, marcaBusca], name: "vehicles_userId_marca_idx")
+  @@index([userId, ano], name: "vehicles_userId_ano_idx")
+  @@map("vehicles")
+}

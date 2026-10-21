@@ -1,0 +1,64 @@
+# DRIVO — orquestração: postgres:16-alpine (P-04: tag confirmada) + api + web.
+# Fonte: plan.md §Strategy (ordem de geração e build).
+name: drivo
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: drivo
+      POSTGRES_PASSWORD: ${DRIVO_DB_PASSWORD:-drivo}
+      POSTGRES_DB: drivo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drivo -d drivo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - drivo_pgdata:/var/lib/postgresql/data
+    ports:
+      # ⚠️ host usa 5433: nesta máquina há um serviço Windows postgres-es.exe
+      # já escutando na 5432 (conflito). Entre containers continua `db:5432`.
+      - "5433:5432"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://drivo:${DRIVO_DB_PASSWORD:-drivo}@db:5432/drivo?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
+
+volumes:
+  drivo_pgdata:
