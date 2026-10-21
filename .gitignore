@@ -1,0 +1,32 @@
+# drivo — monorepo root gitignore
+
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Prisma (artefato gerado — commitado via migration, nunca o client)
+apps/api/src/generated/
+
+# Ambientes — nenhum segredo versionado
+.env
+.env.*
+!.env.example
+
+# Testes
+coverage/
+.nyc_output/
+
+# Backups e sistema
+.git.backup-*/
+.DS_Store
+Thumbs.db
+npm-debug.log*
+pnpm-debug.log*
+
+# Next.js (next-env.d.ts DEVE ser commitado no Next 16)
