@@ -1,9 +1,11 @@
 # DRIVO — orquestração: postgres:16-alpine (P-04: tag confirmada) + api + web.
 # Fonte: plan.md §Strategy (ordem de geração e build).
+# Ambientes: cada app tem o seu (.env da API, .env.local da Web). O Compose NÃO
+# carrega .env de subpastas automaticamente — por isso o env_file explícito.
 name: drivo
 
 services:
-  db:
+  postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -18,8 +20,8 @@ services:
     volumes:
       - drivo_pgdata:/var/lib/postgresql/data
     ports:
-      # ⚠️ host usa 5433: nesta máquina há um serviço Windows postgres-es.exe
-      # já escutando na 5432 (conflito). Entre containers continua `db:5432`.
+      # ⚠️ host usa 5433: nesta máquina há um serviço Windows postgres.exe
+      # já escutando na 5432 (conflito). Entre containers é `postgres:5432`.
       - "5433:5432"
 
   api:
@@ -28,12 +30,16 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     env_file:
-      - .env
+      # `required: false` evita que o Compose quebre antes da validação do app.
+      # Rode `pnpm setup` na raiz para criar os arquivos a partir dos .env.example.
+      - path: ./apps/api/.env
+        required: false
     environment:
+      # Sobrescreve o .env: dentro da rede do Compose o banco é `postgres:5432`.
       NODE_ENV: production
-      DATABASE_URL: postgresql://drivo:${DRIVO_DB_PASSWORD:-drivo}@db:5432/drivo?schema=public
+      DATABASE_URL: postgresql://drivo:${DRIVO_DB_PASSWORD:-drivo}@postgres:5432/drivo?schema=public
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     ports:
       - "3000:3000"
@@ -49,8 +55,12 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
+        # NEXT_PUBLIC_* entra no bundle em build time. Browser roda no host → localhost.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
     restart: unless-stopped
+    env_file:
+      - path: ./apps/web/.env.local
+        required: false
     environment:
       NODE_ENV: production
       PORT: 3000
