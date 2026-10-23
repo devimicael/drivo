@@ -13,5 +13,5 @@ allowBuilds:
   unrs-resolver: false
 
 minimumReleaseAgeExclude:
-  - lucide-react@1.61.0
+  - material-symbols@0.48.1
   - vite@8.3.5

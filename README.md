@@ -17,7 +17,7 @@ orquestrado por **Docker Compose** com um único comando.
 | Fase | Escopo | Status |
 | --- | --- | --- |
 | Setup | Monorepo pnpm, ambientes por app, Compose, Prisma 7 + migration inicial, imagens Docker | ✅ concluída |
-| Foundational | Validação de env (Zod), `PrismaService` com driver adapter, guards JWT/CSRF, filtro de erro único, Swagger, providers do frontend | ⏳ em andamento |
+| Foundational | Validação de env (Zod), `PrismaService` com driver adapter, guards JWT/CSRF, filtro de erro único, Swagger, providers do frontend | ⏳ próxima |
 | US1 | Cadastro, login, sessão e logout | ⏳ |
 | US2 | Garagem: listar, pesquisar, criar veículo | ⏳ |
 | US3 | Importação de CRLV (upload → Gemini → revisão → confirmação) | ⏳ |
@@ -73,11 +73,11 @@ Docker, API REST em JSON, autenticação JWT e uso do Gemini para leitura do CRL
 | Camada | Tecnologia |
 | --- | --- |
 | Web | Next.js 16.4.2 (App Router, PPR), React 19, TypeScript, Tailwind CSS v4 |
-| Web — formulários/dados | React Hook Form, Zod 4, TanStack Query, lucide-react |
+| Web — formulários/dados | React Hook Form, Zod 4, TanStack Query, Material Symbols Rounded |
 | API | NestJS 12 (ESM), TypeScript, Zod 4 (validação), Swagger |
 | Banco | PostgreSQL 16 + Prisma 7 (`prisma-client` + driver adapter `@prisma/adapter-pg`) |
 | IA | `@google/genai` 2.30.0 — **somente no backend** |
-| Segurança | Argon2id (`@node-rs/argon2`), JWT HS256 em cookie `httpOnly`, CSRF double-submit, rate limiting |
+| Segurança | Argon2id (`@node-rs/argon2`), JWT HS256 em cookie `httpOnly`, CSRF double-submit, helmet, rate limiting |
 | Testes | Jest + Supertest (API), Vitest + Testing Library (web) |
 | Infra | pnpm workspaces, Docker multi-stage, Docker Compose |
 
@@ -97,7 +97,7 @@ drivo/
 │   │   │   ├── config/      # schema Zod do ambiente + configuration
 │   │   │   ├── prisma/      # PrismaService (único acesso ao banco)
 │   │   │   └── modules/     # auth, users, vehicles, crlv
-│   │   ├── test/            # e2e (PostgreSQL real isolado, Gemini mockado)
+│   │   ├── test/            # e2e (PostgreSQL isolado a partir de T026, Gemini mockado)
 │   │   ├── .env.example
 │   │   └── Dockerfile
 │   └── web/                 # Next.js 16 — App Router em src/app
@@ -279,7 +279,8 @@ Cada aplicação tem o seu ambiente — **a raiz não tem `.env`**. Os templates
 - Base: `http://localhost:3001`
 - Sessão: JWT HS256 em cookie **`drivo_session`** (`httpOnly`, `SameSite=Lax`). O token nunca
   aparece no corpo JSON nem é acessível ao JavaScript do browser.
-- CSRF: double-submit — cookie `__Host-drivo_csrf` + header `X-CSRF-Token`.
+- CSRF: double-submit — cookie `drivo_csrf` em dev (`__Host-drivo_csrf` em produção, com
+  `Secure`) + header `X-CSRF-Token`.
 - Erros: envelope único, sem stack trace nem detalhes internos (implementado na fase
   foundational):
 
@@ -302,9 +303,10 @@ Cada aplicação tem o seu ambiente — **a raiz não tem `.env`**. Os templates
 | `POST` | `/vehicles/scan-crlv` | Upload do CRLV → campos extraídos pelo Gemini | ⏳ |
 
 Códigos de erro estáveis: `VALIDATION_ERROR`, `EMAIL_ALREADY_IN_USE`, `PLATE_ALREADY_EXISTS`,
-`INVALID_CREDENTIALS`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`,
-`GEMINI_TIMEOUT`, `GEMINI_UNAVAILABLE`, `GEMINI_QUOTA_EXCEEDED`, `GEMINI_INVALID_RESPONSE`,
-`INTERNAL_ERROR`.
+`CONFIRMATION_REQUIRED`, `FILE_REQUIRED`, `UNSUPPORTED_FILE_TYPE`, `FILE_TOO_LARGE`,
+`FILE_CONTENT_MISMATCH`, `INVALID_CREDENTIALS`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`,
+`RATE_LIMITED`, `GEMINI_TIMEOUT`, `GEMINI_UNAVAILABLE`, `GEMINI_QUOTA_EXCEEDED`,
+`GEMINI_INVALID_RESPONSE`, `INTERNAL_ERROR`.
 
 **Modelo de dados** (migration `20261021220906_init`): `users` (id, nome, e-mail único,
 `passwordHash`) e `vehicles` (placa única **por usuário**, marca, modelo, ano, chassi, campos
@@ -326,7 +328,7 @@ pnpm --filter drivo-api test -- src/app.controller.spec.ts
 # API — cobertura
 pnpm test:cov
 
-# API — e2e (Supertest; PostgreSQL real isolado; Gemini SEMPRE mockado)
+# API — e2e (Supertest; PostgreSQL isolado a partir de T026; Gemini SEMPRE mockado)
 pnpm test:e2e
 
 # Web — Vitest + Testing Library
@@ -338,8 +340,9 @@ pnpm build            # type-check de produção das duas apps
 ```
 
 Regras da suíte: o Gemini **nunca** é chamado de verdade nos testes (5 cenários de falha
-simulados) e o e2e roda contra um PostgreSQL real e isolado, sem tocar no banco de
-desenvolvimento.
+simulados) e o e2e roda contra um PostgreSQL real e isolado (`drivo_test`, criado pelo init
+script do Compose), sem tocar no banco de desenvolvimento. A infraestrutura de e2e é montada
+em **T026**; até lá o e2e existente é o smoke test do scaffold.
 
 ---
 
@@ -383,8 +386,10 @@ desenvolvimento.
   store compartilhado (ex.: Redis).
 - Importação limitada a **1 arquivo** por vez, JPEG/PNG/WebP/PDF até **5 MB**; a qualidade da
   extração depende da legibilidade do documento e da cota gratuita do Gemini.
-- `__Host-` no cookie de CSRF exige HTTPS: em `http://localhost` o comportamento é ajustado
-  para desenvolvimento.
+- O prefixo `__Host-` do cookie de CSRF só é usado em produção (exige `Secure`); em
+  `http://localhost` o cookie é `drivo_csrf` sem prefixo.
+- A fonte **Material Symbols Rounded** é variável e inclui todos os ícones (~5 MB); para
+  produção convém subsetar apenas os glifos usados.
 - Sem CI/CD configurado; verificações são locais (`pnpm lint`, `pnpm test`, `pnpm build`).
 
 ---
@@ -403,6 +408,8 @@ desenvolvimento.
   páginas de PDF e fallback de modelo.
 - **Paginação, ordenação e filtros** na garagem; busca com `pg_trgm`/full-text para volumes
   maiores.
+- **Performance de assets**: subsetar a fonte Material Symbols e usar `next/font` com
+  `display: swap`; hoje a fonte variável completa (~5 MB) é self-hosted.
 - **Deploy** com HTTPS real (cookies `__Host-` completos), backup do volume e migrações em
   pipeline separado.
 
@@ -419,6 +426,7 @@ desenvolvimento.
 | Cookie não é enviado em produção | `COOKIE_SECURE=true` exige HTTPS; em `http://localhost` use `false`. |
 | Web não enxerga a API | `NEXT_PUBLIC_API_URL` é embutida no **build**; após mudar, rode `docker compose up --build` (ou reinicie o `next dev`). |
 | Quero zerar o banco | `docker compose down -v` (apaga o volume `drivo_pgdata`) e suba de novo. |
+| `drivo_test` não existe no e2e | O init script só roda em volume vazio: `docker compose down -v && docker compose up -d postgres`. |
 | Docker daemon não responde | Abra o Docker Desktop e aguarde o engine iniciar. |
 
 ---

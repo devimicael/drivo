@@ -19,6 +19,8 @@ services:
       retries: 10
     volumes:
       - drivo_pgdata:/var/lib/postgresql/data
+      # Cria o banco `drivo_test` no primeiro start (volume vazio). Usado pelo e2e.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     ports:
       # ⚠️ host usa 5433: nesta máquina há um serviço Windows postgres.exe
       # já escutando na 5432 (conflito). Entre containers é `postgres:5432`.
