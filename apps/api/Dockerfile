@@ -22,5 +22,5 @@ RUN corepack enable
 WORKDIR /app
 COPY --from=build /app/exe ./
 USER node
-EXPOSE 3000
+EXPOSE 3001
 CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]

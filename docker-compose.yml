@@ -37,14 +37,15 @@ services:
     environment:
       # Sobrescreve o .env: dentro da rede do Compose o banco é `postgres:5432`.
       NODE_ENV: production
+      PORT: 3001
       DATABASE_URL: postgresql://drivo:${DRIVO_DB_PASSWORD:-drivo}@postgres:5432/drivo?schema=public
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "3001:3001"
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -56,7 +57,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         # NEXT_PUBLIC_* entra no bundle em build time. Browser roda no host → localhost.
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
     restart: unless-stopped
     env_file:
       - path: ./apps/web/.env.local
@@ -68,7 +69,7 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "3001:3000"
+      - "3000:3000"
 
 volumes:
   drivo_pgdata:
