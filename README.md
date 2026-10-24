@@ -17,9 +17,9 @@ orquestrado por **Docker Compose** com um único comando.
 | Fase | Escopo | Status |
 | --- | --- | --- |
 | Setup | Monorepo pnpm, ambientes por app, Compose, Prisma 7 + migration inicial, imagens Docker | ✅ concluída |
-| Foundational | Validação de env (Zod), `PrismaService` com driver adapter, guards JWT/CSRF/rate-limit, filtro de erro único, Swagger | ✅ concluída (Swagger via factory entra com os recursos) |
+| Foundational | Validação de env (Zod), `PrismaService` com driver adapter, guards JWT/CSRF/rate-limit, filtro de erro único, Swagger | ✅ concluída (Swagger em `/docs`) |
 | US1 | Cadastro, login, sessão e logout (API + telas) | ✅ concluída |
-| US2 | Garagem: listar, pesquisar, criar veículo | ⚠️ API concluída (16 e2e); telas pendentes |
+| US2 | Garagem: listar, pesquisar, criar/editar/excluir veículo | ⚠️ API concluída (15 e2e de veículos); telas pendentes |
 | US3 | Importação de CRLV (upload → Gemini → revisão → confirmação) | ⏳ |
 | US4–US6 | Editar/excluir veículo, perfil, polimento e documentação final | ⏳ |
 
@@ -108,7 +108,7 @@ drivo/
 │       │   ├── hooks/       # hooks de dados (TanStack Query)
 │       │   ├── lib/         # api.ts (cliente HTTP), query-client.ts
 │       │   ├── schemas/     # Zod compartilhado nos formulários
-│       │   └── middleware.ts# redireciona por cookie (conveniência, não segurança)
+│       │   └── proxy.ts     # redireciona por cookie (conveniência, não segurança — Next 16)
 │       ├── .env.example
 │       └── Dockerfile
 ├── docker-compose.yml
@@ -131,7 +131,7 @@ drivo/
 | Componentes (web) | Apresentação e interação | Acessar `fetch` direto |
 
 O browser fala **direto** com a API (`credentials: 'include'`, CORS explícito) — não há BFF.
-A API é a única barreira de segurança; o `middleware.ts` do Next só redireciona.
+A API é a única barreira de segurança; o `proxy.ts` do Next só redireciona.
 
 ---
 
@@ -201,7 +201,7 @@ postgres (postgres:16-alpine, healthcheck pg_isready)
 
 - **Migrações são aplicadas automaticamente** no entrypoint da API (`prisma migrate deploy`).
 - Acesse: **web** http://localhost:3000 · **API** http://localhost:3001 ·
-  **Swagger** http://localhost:3001/docs (quando a fase foundational estiver concluída).
+  **Swagger** http://localhost:3001/docs.
 - Em segundo plano: `docker compose up -d --build`; logs: `docker compose logs -f`.
 - Parar: `docker compose down` (mantém o volume do banco).
   Apagar **também os dados**: `docker compose down -v`.
@@ -281,6 +281,9 @@ Cada aplicação tem o seu ambiente — **a raiz não tem `.env`**. Os templates
   aparece no corpo JSON nem é acessível ao JavaScript do browser.
 - CSRF: double-submit — cookie `drivo_csrf` em dev (`__Host-drivo_csrf` em produção, com
   `Secure`) + header `X-CSRF-Token`.
+- Rate limiting próprio (em memória, por IP): **120 req/min** por padrão e **5 req/min** em
+  `POST /auth/register` e `POST /auth/login`; excedeu → `429 RATE_LIMITED` + header
+  `Retry-After`. Coberto por teste que prova o 429 no login.
 - Erros: envelope único, sem stack trace nem detalhes internos (implementado na fase
   foundational):
 
@@ -290,6 +293,7 @@ Cada aplicação tem o seu ambiente — **a raiz não tem `.env`**. Os templates
 
 | Método | Rota | Descrição | Status |
 | --- | --- | --- | --- |
+| `GET` | `/health` | Healthcheck público (Docker Compose); não toca o banco | ✅ |
 | `POST` | `/auth/register` | Cadastro | ✅ |
 | `POST` | `/auth/login` | Login (mensagem idêntica para e-mail/senha inválidos) | ✅ |
 | `POST` | `/auth/logout` | Logout (limpa cookies) | ✅ |
@@ -299,7 +303,7 @@ Cada aplicação tem o seu ambiente — **a raiz não tem `.env`**. Os templates
 | `POST` | `/vehicles` | Criar veículo | ✅ |
 | `GET` | `/vehicles/{id}` | Detalhe | ✅ |
 | `PATCH` | `/vehicles/{id}` | Editar | ✅ |
-| `DELETE` | `/vehicles/{id}` | Excluir (exige `X-Confirm-Delete: true`) | ✅ |
+| `DELETE` | `/vehicles/{id}` | Excluir (204; 404 para veículo de outro usuário) | ✅ |
 | `POST` | `/vehicles/scan-crlv` | Upload do CRLV → campos extraídos pelo Gemini | ⏳ |
 
 Códigos de erro estáveis: `VALIDATION_ERROR`, `EMAIL_ALREADY_IN_USE`, `PLATE_ALREADY_EXISTS`,
@@ -308,11 +312,12 @@ Códigos de erro estáveis: `VALIDATION_ERROR`, `EMAIL_ALREADY_IN_USE`, `PLATE_A
 `RATE_LIMITED`, `GEMINI_TIMEOUT`, `GEMINI_UNAVAILABLE`, `GEMINI_QUOTA_EXCEEDED`,
 `GEMINI_INVALID_RESPONSE`, `INTERNAL_ERROR`.
 
-**Modelo de dados** (migration `20261021220906_init`): `users` (id, nome, e-mail único,
-`passwordHash`) e `vehicles` (placa única **por usuário**, marca, modelo, ano, chassi, campos
-opcionais, `origem` `MANUAL`/`CRLV` e colunas normalizadas `modeloBusca`/`marcaBusca` para
-pesquisa sem acento e sem caixa). **Nenhum arquivo de CRLV é persistido** — o upload vive
-apenas em memória durante a extração.
+**Modelo de dados** (migrations `20261021220906_init` + `20261024120000_vehicles_search_simplify`):
+`users` (id, nome, e-mail único, `passwordHash`) e `vehicles` (placa única **por usuário**,
+marca, modelo, ano, chassi e opcionais `renavam` 9–11 dígitos, `cor`, `cilindrada`, `tipo`,
+`uf`, `anoFabricacao`). A busca usa `contains`/`mode: 'insensitive'` direto nas colunas —
+sem `modeloBusca`/`marcaBusca`; `origem` volta com o import de CRLV.
+**Nenhum arquivo de CRLV é persistido** — o upload vive apenas em memória durante a extração.
 
 ---
 
@@ -329,6 +334,9 @@ pnpm --filter drivo-api test -- src/app.controller.spec.ts
 pnpm test:cov
 
 # API — e2e (Supertest; PostgreSQL isolado a partir de T026; Gemini SEMPRE mockado)
+# Em volume novo, aplique as migrations no banco de teste uma vez:
+# DATABASE_URL='postgresql://drivo:drivo@localhost:5433/drivo_test?schema=public' \
+#   pnpm --filter drivo-api exec prisma migrate deploy
 pnpm test:e2e
 
 # Web — Vitest + Testing Library
@@ -381,8 +389,11 @@ script do Compose), sem tocar no banco de desenvolvimento.
   e-mail, foto do veículo e exportação do CRLV.
 - Sessão com expiração fixa (`JWT_TTL_SECONDS`), **sem refresh token** nem renovação deslizante.
 - Listagem de veículos **sem paginação** (volume esperado: garagem pessoal).
-- Rate limiting em memória — adequado a uma instância; em múltiplas réplicas precisaria de
-  store compartilhado (ex.: Redis).
+- **Busca não ignora acentuação**: `contains` + `mode: 'insensitive'` cobre apenas
+  maiúsculas/minúsculas (buscar `onix` não encontra `Ônix`). O AC-06.2 foi ajustado para o
+  comportamento real; a evolução é a extensão `unaccent` do PostgreSQL.
+- Rate limiting **ativo, porém em memória** — adequado a uma instância; em múltiplas réplicas
+  precisaria de store compartilhado (ex.: Redis).
 - Importação limitada a **1 arquivo** por vez, JPEG/PNG/WebP/PDF até **5 MB**; a qualidade da
   extração depende da legibilidade do documento e da cota gratuita do Gemini.
 - O prefixo `__Host-` do cookie de CSRF só é usado em produção (exige `Secure`); em
@@ -406,7 +417,7 @@ script do Compose), sem tocar no banco de desenvolvimento.
 - **Upload mais resiliente**: pré-processamento da imagem (recorte/rotação), suporte a múltiplas
   páginas de PDF e fallback de modelo.
 - **Paginação, ordenação e filtros** na garagem; busca com `pg_trgm`/full-text para volumes
-  maiores.
+  maiores e `unaccent` para ignorar acentuação (hoje só maiúsculas são ignoradas).
 - **Performance de assets**: subsetar a fonte Material Symbols e usar `next/font` com
   `display: swap`; hoje a fonte variável completa (~5 MB) é self-hosted.
 - **Deploy** com HTTPS real (cookies `__Host-` completos), backup do volume e migrações em
@@ -422,7 +433,7 @@ script do Compose), sem tocar no banco de desenvolvimento.
 | `DATABASE_URL` ausente ao rodar `pnpm db:*` | Rode `pnpm setup` (cria `apps/api/.env`). |
 | API sobe mas login falha com 500 | Falta `JWT_SECRET`/`CSRF_SECRET` válidos (≥ 32 chars) em `apps/api/.env`. |
 | Importação responde 502 | `GOOGLE_API_KEY` ausente/inválida ou cota gratuita esgotada — é o comportamento esperado e controlado. |
-| Cookie não é enviado em produção | `COOKIE_SECURE=true` exige HTTPS; em `http://localhost` use `false`. |
+| Cookies não aparecem em cliente HTTP no Compose | Em `NODE_ENV=production` os cookies são `Secure` (CSRF em `__Host-drivo_csrf`). Navegadores aceitam em `http://localhost`; curl/Postman precisam de HTTPS ou de reenviar os headers manualmente. |
 | Web não enxerga a API | `NEXT_PUBLIC_API_URL` é embutida no **build**; após mudar, rode `docker compose up --build` (ou reinicie o `next dev`). |
 | Quero zerar o banco | `docker compose down -v` (apaga o volume `drivo_pgdata`) e suba de novo. |
 | `drivo_test` não existe no e2e | O init script só roda em volume vazio: `docker compose down -v && docker compose up -d postgres`. |
