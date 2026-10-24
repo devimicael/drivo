@@ -76,16 +76,16 @@ const anoFabricacaoField = z.coerce
   .min(1900, 'Ano de fabricação inválido.')
   .max(MAX_YEAR, 'Ano de fabricação inválido.');
 
-// --- Variantes para create (ausente = não enviado) ---
-export const optionalRenavam = z.preprocess(emptyToUndefined, renavamField.optional());
-export const optionalCor = z.preprocess(emptyToUndefined, corField.optional());
+// --- Variantes para create (ausente/null = não enviado) ---
+export const optionalRenavam = z.preprocess(emptyToUndefined, renavamField.nullable().optional());
+export const optionalCor = z.preprocess(emptyToUndefined, corField.nullable().optional());
 
 // PENDENTE Figma: bloco que pode sair do DTO sem tocar no restante do schema.
 export const figmaPendingOptionalFields = {
-  cilindrada: z.preprocess(emptyToUndefined, cilindradaField.optional()),
-  tipo: z.preprocess(emptyToUndefined, tipoField.optional()),
-  uf: z.preprocess(emptyToUndefined, ufField.optional()),
-  anoFabricacao: z.preprocess(emptyToUndefined, anoFabricacaoField.optional()),
+  cilindrada: z.preprocess(emptyToUndefined, cilindradaField.nullable().optional()),
+  tipo: z.preprocess(emptyToUndefined, tipoField.nullable().optional()),
+  uf: z.preprocess(emptyToUndefined, ufField.nullable().optional()),
+  anoFabricacao: z.preprocess(emptyToUndefined, anoFabricacaoField.nullable().optional()),
 };
 
 // --- Variantes para update (null limpa o campo opcional) ---

@@ -23,6 +23,9 @@ export const vehicleUpdateSchema = z
     cor: nullableCor,
     ...figmaPendingNullableFields,
   })
-  .strict();
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'Informe ao menos um campo para atualizar.',
+  });
 
 export type VehicleUpdateInput = z.infer<typeof vehicleUpdateSchema>;
