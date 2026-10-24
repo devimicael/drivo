@@ -5,9 +5,23 @@
   --foreground: #171717;
 }
 
+/*
+ * Tokens visuais do DRIVO. Cores semânticas — nunca valores soltos nas classes.
+ * Requsito da spec: contrastes ≥ 4.5:1 para texto normal sobre `surface`.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Mundo escuro das telas de autenticação (Figma): fundo quase preto fixo. */
+  --color-surface: #0a0a0b;
+  --color-field: #212225;
+  --color-muted: #9aa0a8;
+  --color-bright: #c8ccd2;
+  --color-primary: #1f80ea;
+  --color-primary-hover: #4596f1;
+  --color-danger: #f4676d;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -22,5 +36,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }

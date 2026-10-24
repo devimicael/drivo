@@ -17,9 +17,9 @@ orquestrado por **Docker Compose** com um único comando.
 | Fase | Escopo | Status |
 | --- | --- | --- |
 | Setup | Monorepo pnpm, ambientes por app, Compose, Prisma 7 + migration inicial, imagens Docker | ✅ concluída |
-| Foundational | Validação de env (Zod), `PrismaService` com driver adapter, guards JWT/CSRF, filtro de erro único, Swagger, providers do frontend | ⏳ próxima |
-| US1 | Cadastro, login, sessão e logout | ⏳ |
-| US2 | Garagem: listar, pesquisar, criar veículo | ⏳ |
+| Foundational | Validação de env (Zod), `PrismaService` com driver adapter, guards JWT/CSRF/rate-limit, filtro de erro único, Swagger | ✅ concluída (Swagger via factory entra com os recursos) |
+| US1 | Cadastro, login, sessão e logout (API + telas) | ✅ concluída |
+| US2 | Garagem: listar, pesquisar, criar veículo | ⚠️ API concluída (16 e2e); telas pendentes |
 | US3 | Importação de CRLV (upload → Gemini → revisão → confirmação) | ⏳ |
 | US4–US6 | Editar/excluir veículo, perfil, polimento e documentação final | ⏳ |
 
@@ -290,16 +290,16 @@ Cada aplicação tem o seu ambiente — **a raiz não tem `.env`**. Os templates
 
 | Método | Rota | Descrição | Status |
 | --- | --- | --- | --- |
-| `POST` | `/auth/register` | Cadastro | ⏳ |
-| `POST` | `/auth/login` | Login (mensagem idêntica para e-mail/senha inválidos) | ⏳ |
-| `POST` | `/auth/logout` | Logout (limpa cookies) | ⏳ |
-| `GET` | `/auth/me` | Sessão atual | ⏳ |
+| `POST` | `/auth/register` | Cadastro | ✅ |
+| `POST` | `/auth/login` | Login (mensagem idêntica para e-mail/senha inválidos) | ✅ |
+| `POST` | `/auth/logout` | Logout (limpa cookies) | ✅ |
+| `GET` | `/auth/me` | Sessão atual | ✅ |
 | `PATCH` | `/users/me` | Alterar nome | ⏳ |
-| `GET` | `/vehicles` | Listar/pesquisar (`?search=`) | ⏳ |
-| `POST` | `/vehicles` | Criar veículo | ⏳ |
-| `GET` | `/vehicles/{id}` | Detalhe | ⏳ |
-| `PATCH` | `/vehicles/{id}` | Editar | ⏳ |
-| `DELETE` | `/vehicles/{id}` | Excluir (exige `X-Confirm-Delete: true`) | ⏳ |
+| `GET` | `/vehicles` | Listar/pesquisar (`?search=`) | ✅ |
+| `POST` | `/vehicles` | Criar veículo | ✅ |
+| `GET` | `/vehicles/{id}` | Detalhe | ✅ |
+| `PATCH` | `/vehicles/{id}` | Editar | ✅ |
+| `DELETE` | `/vehicles/{id}` | Excluir (exige `X-Confirm-Delete: true`) | ✅ |
 | `POST` | `/vehicles/scan-crlv` | Upload do CRLV → campos extraídos pelo Gemini | ⏳ |
 
 Códigos de erro estáveis: `VALIDATION_ERROR`, `EMAIL_ALREADY_IN_USE`, `PLATE_ALREADY_EXISTS`,
@@ -341,8 +341,7 @@ pnpm build            # type-check de produção das duas apps
 
 Regras da suíte: o Gemini **nunca** é chamado de verdade nos testes (5 cenários de falha
 simulados) e o e2e roda contra um PostgreSQL real e isolado (`drivo_test`, criado pelo init
-script do Compose), sem tocar no banco de desenvolvimento. A infraestrutura de e2e é montada
-em **T026**; até lá o e2e existente é o smoke test do scaffold.
+script do Compose), sem tocar no banco de desenvolvimento.
 
 ---
 
