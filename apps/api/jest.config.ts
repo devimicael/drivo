@@ -14,6 +14,9 @@ const config: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
+  // Envs de teste ANTES de qualquer import: `ConfigModule.forRoot` resolve o
+  // ambiente na avaliação do decorator do AppModule (ver plan.md §config).
+  setupFiles: ['<rootDir>/test/setup.ts'],
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },

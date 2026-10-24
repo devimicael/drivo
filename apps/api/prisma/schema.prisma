@@ -1,6 +1,8 @@
 // Modelo por data-model.md §5. Referência transformada em migration inicial
 // pelo Dia 1 (T008). URL do banco vive em prisma.config.ts (Prisma 7).
 // Sem entidade de CRLV/arquivo/imageUrl — RF17, RN-02. Sem `combustivel` (P-08 fechado).
+// Busca de veículos usa `contains`/`mode: insensitive` (sem colunas derivadas).
+// `origem` volta junto com o import de CRLV (fora de escopo nesta etapa).
 
 generator client {
   provider = "prisma-client"
@@ -38,18 +40,12 @@ model Vehicle {
   tipo          String?  @db.VarChar(40)
   uf            String?  @db.Char(2)
   anoFabricacao Int?
-  origem        String   @default("MANUAL") @db.VarChar(10)
-  modeloBusca   String   @db.VarChar(80)
-  marcaBusca    String   @db.VarChar(60)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Prefixo `userId` já cobre o filtro por dono: índice próprio seria redundante.
   @@unique([userId, placa], name: "user_placa_unique")
-  @@index([userId], name: "vehicles_userId_idx")
-  @@index([userId, modeloBusca], name: "vehicles_userId_modelo_idx")
-  @@index([userId, marcaBusca], name: "vehicles_userId_marca_idx")
-  @@index([userId, ano], name: "vehicles_userId_ano_idx")
   @@map("vehicles")
 }
