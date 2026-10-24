@@ -13,7 +13,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const BASE =
   "h-12 w-full rounded-lg bg-field px-3.5 text-[15px] text-foreground outline-hidden " +
-  "placeholder:text-muted/75 " +
+  "placeholder:text-muted/85 " +
   "transition-shadow duration-200 " +
   "focus-visible:ring-2 focus-visible:ring-primary/70 " +
   "aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger/70";

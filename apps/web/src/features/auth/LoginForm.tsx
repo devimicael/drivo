@@ -46,7 +46,7 @@ export function LoginForm({ sessionExpired = false }: { sessionExpired?: boolean
   return (
     <div className="w-full max-w-[360px]">
       <header className="flex flex-col items-center text-center">
-        <Logo width={48} />
+        <Logo width={64} />
         <h1 className="mt-5 text-[22px] font-bold text-foreground">Entrar no Drivo</h1>
         <p className="mt-1.5 max-w-[280px] text-sm text-muted">
           Seus veículos, documentos e dados em um só lugar.

@@ -31,10 +31,13 @@ export function AuthHero({ image, imageAlt = "", title, subtitle }: AuthHeroProp
           sizes="50vw"
           className="object-cover"
         />
-        {/* Gradiente de baixo para cima garante contraste do texto. */}
+        {/* Escurecimento restrito à metade inferior (como no Figma): a foto
+            acima do texto fica sem overlay, preservando o reflexo vermelho no
+            piso e os highlights do carro. Contraste do texto garantido pelo
+            degradê sobre a zona do caption. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/5"
+          className="absolute inset-x-0 bottom-0 h-[60%] bg-linear-to-t from-black/85 via-black/40 to-transparent"
         />
         <figcaption className="absolute inset-x-0 bottom-0 p-7">
           <h2 className="text-[28px] leading-[1.2] font-bold text-white">{title}</h2>

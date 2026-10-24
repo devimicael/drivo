@@ -13,13 +13,18 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* Mundo escuro das telas de autenticação (Figma): fundo quase preto fixo. */
-  --color-surface: #0a0a0b;
-  --color-field: #212225;
+  /*
+   * Mundo escuro das telas de autenticação (Figma). Superfícies iOS-nomeadas
+   * (HIG dark): preto puro de fundo, systemGray5 (#2C2C2E) nos campos e
+   * systemBlue (#0A84FF) como accent. A conferência com o fill exato do
+   * Dev Mode do Figma está pendente na US de fidelidade (2026-10-24).
+   */
+  --color-surface: #000000;
+  --color-field: #2c2c2e;
   --color-muted: #9aa0a8;
   --color-bright: #c8ccd2;
-  --color-primary: #1f80ea;
-  --color-primary-hover: #4596f1;
+  --color-primary: #0a84ff;
+  --color-primary-hover: #459cff;
   --color-danger: #f4676d;
 
   --font-sans: var(--font-geist-sans);
