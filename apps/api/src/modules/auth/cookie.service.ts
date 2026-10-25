@@ -1,5 +1,4 @@
-// Emissão/limpeza dos cookies de sessão e de CSRF — T020.
-// O token NUNCA vai no corpo JSON (RF14, AC-02.1).
+// Emite e limpa os cookies de sessão e CSRF; o JWT nunca vai no corpo JSON.
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -8,6 +7,7 @@ import {
   SESSION_COOKIE_NAME,
   createCsrfToken,
   csrfCookieName,
+  resolveSecureCookies,
 } from '../../common/auth/cookies.js';
 
 @Injectable()
@@ -17,9 +17,10 @@ export class CookieService {
   private readonly ttlMs: number;
 
   constructor(config: ConfigService) {
-    this.secure =
-      config.getOrThrow<string>('NODE_ENV') === 'production' ||
-      config.getOrThrow<boolean>('COOKIE_SECURE');
+    this.secure = resolveSecureCookies(
+      config.get<boolean | undefined>('COOKIE_SECURE'),
+      config.getOrThrow<string>('NODE_ENV'),
+    );
     this.csrfSecret = config.getOrThrow<string>('CSRF_SECRET');
     this.ttlMs = config.getOrThrow<number>('JWT_TTL_SECONDS') * 1000;
   }

@@ -14,8 +14,5 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
-    // Ainda não há testes de UI (entram na US1). Evita falhar `pnpm test:web`
-    // enquanto a suíte está vazia; pode ser removido quando houver testes.
-    passWithNoTests: true,
   },
 });

@@ -1,5 +1,4 @@
 # DRIVO — orquestração: postgres:16-alpine (P-04: tag confirmada) + api + web.
-# Fonte: plan.md §Strategy (ordem de geração e build).
 # Ambientes: cada app tem o seu (.env da API, .env.local da Web). O Compose NÃO
 # carrega .env de subpastas automaticamente — por isso o env_file explícito.
 name: drivo
@@ -32,15 +31,27 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     env_file:
-      # `required: false` evita que o Compose quebre antes da validação do app.
-      # Rode `pnpm setup` na raiz para criar os arquivos a partir dos .env.example.
+      # `required: false` + defaults abaixo = sobe em clone limpo, sem `pnpm setup`.
+      # Se o arquivo existir, os valores dele completam o ambiente (ex.: GOOGLE_API_KEY).
       - path: ./apps/api/.env
         required: false
     environment:
       # Sobrescreve o .env: dentro da rede do Compose o banco é `postgres:5432`.
-      NODE_ENV: production
-      PORT: 3001
-      DATABASE_URL: postgresql://drivo:${DRIVO_DB_PASSWORD:-drivo}@postgres:5432/drivo?schema=public
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://drivo:${DRIVO_DB_PASSWORD:-drivo}@postgres:5432/drivo?schema=public
+      # Avaliação local em http://localhost: Secure deixaria o login inacessível
+      # em browsers que recusam cookie `Secure` fora de HTTPS. Use `true` com TLS.
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      # Web + a própria API (Swagger em /docs).
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      # Limites folgados para quem cadastra/loga várias vezes durante a avaliação.
+      # Ajuste por env se quiser apertar (ex.: AUTH_THROTTLE_LIMIT=5).
+      - THROTTLE_LIMIT=${THROTTLE_LIMIT:-300}
+      - AUTH_THROTTLE_LIMIT=${AUTH_THROTTLE_LIMIT:-20}
+      - SCAN_THROTTLE_LIMIT=${SCAN_THROTTLE_LIMIT:-10}
+      # JWT_SECRET/CSRF_SECRET NÃO entram aqui: vêm de apps/api/.env quando existe.
+      # Sem o arquivo, o entrypoint gera valores aleatórios por execução.
     depends_on:
       postgres:
         condition: service_healthy

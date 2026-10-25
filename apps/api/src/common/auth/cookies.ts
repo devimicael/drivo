@@ -1,4 +1,4 @@
-// Nomes e assinatura dos cookies de sessão/CSRF — plan.md §Nomenclatura e research.md §7.
+// Nomes e assinatura dos cookies de sessão e CSRF.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export const SESSION_COOKIE_NAME = 'drivo_session';
@@ -6,11 +6,24 @@ const DEV_CSRF_COOKIE_NAME = 'drivo_csrf';
 const SECURE_CSRF_COOKIE_NAME = '__Host-drivo_csrf';
 
 /**
- * `__Host-` só faz sentido com `Secure` (P-06): em `http://localhost` o cookie
+ * `__Host-` exige `Secure`: em `http://localhost` o cookie
  * é `drivo_csrf`; com HTTPS/produção vira `__Host-drivo_csrf`.
  */
 export function csrfCookieName(secure: boolean): string {
   return secure ? SECURE_CSRF_COOKIE_NAME : DEV_CSRF_COOKIE_NAME;
+}
+
+/**
+ * `COOKIE_SECURE` explícito vence o padrão derivado de `NODE_ENV`.
+ * O padrão continua seguro em produção (Secure ligado); o Compose de avaliação
+ * declara `COOKIE_SECURE=false` porque serve `http://localhost` — alguns browsers
+ * recusam cookie `Secure` fora de HTTPS, o que impediria o login.
+ */
+export function resolveSecureCookies(
+  explicit: boolean | undefined,
+  nodeEnv: string,
+): boolean {
+  return explicit ?? nodeEnv === 'production';
 }
 
 /** Valor do cookie: `<nonce>.<HMAC-SHA256(CSRF_SECRET, nonce + '.' + jti)>`. */

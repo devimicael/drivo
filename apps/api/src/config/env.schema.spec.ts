@@ -13,11 +13,12 @@ describe('envSchema', () => {
     expect(env.NODE_ENV).toBe('development');
     expect(env.PORT).toBe(3001);
     expect(env.JWT_TTL_SECONDS).toBe(3600);
-    expect(env.COOKIE_SECURE).toBe(false);
+    // Ausente = derivado de NODE_ENV (Secure em production). Em development, desligado.
+    expect(env.COOKIE_SECURE).toBeUndefined();
     expect(env.CORS_ORIGINS).toEqual(['http://localhost:3000']);
     expect(env.GOOGLE_API_KEY).toBe('');
-    expect(env.THROTTLE_LIMIT).toBe(120);
-    expect(env.AUTH_THROTTLE_LIMIT).toBe(5);
+    expect(env.THROTTLE_LIMIT).toBe(300);
+    expect(env.AUTH_THROTTLE_LIMIT).toBe(20);
   });
 
   it('recusa o boot sem JWT_SECRET', () => {

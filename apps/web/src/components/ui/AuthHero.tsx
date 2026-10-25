@@ -21,7 +21,7 @@ export interface AuthHeroProps {
  */
 export function AuthHero({ image, imageAlt = "", title, subtitle }: AuthHeroProps) {
   return (
-    <div className="hidden p-3 lg:flex">
+    <div className="hidden p-4 lg:flex">
       <figure className="relative flex-1 overflow-hidden rounded-3xl">
         <Image
           src={image}
@@ -39,9 +39,11 @@ export function AuthHero({ image, imageAlt = "", title, subtitle }: AuthHeroProp
           aria-hidden="true"
           className="absolute inset-x-0 bottom-0 h-[60%] bg-linear-to-t from-black/85 via-black/40 to-transparent"
         />
-        <figcaption className="absolute inset-x-0 bottom-0 p-7">
-          <h2 className="text-[28px] leading-[1.2] font-bold text-white">{title}</h2>
-          <p className="mt-3 max-w-[290px] text-sm text-bright">{subtitle}</p>
+        <figcaption className="absolute inset-x-0 bottom-0 p-12">
+          <h2 className="text-[32px] leading-[1.2] font-bold tracking-[-0.8px] text-white">
+            {title}
+          </h2>
+          <p className="mt-3 max-w-[400px] text-[15px] leading-[1.45] text-muted">{subtitle}</p>
         </figcaption>
       </figure>
     </div>

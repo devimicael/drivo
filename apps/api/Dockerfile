@@ -1,6 +1,6 @@
 # Multi-stage para apps/api (NestJS 12, ESM).
 # ⚠️ Contexto de build é a RAIZ do monorepo (pnpm workspaces precisa do lockfile).
-# Ordem obrigatória: prisma generate ANTES de nest build (plan.md §Strategy).
+# O Prisma Client precisa ser gerado antes da compilação NestJS.
 FROM node:22-alpine AS base
 RUN corepack enable
 WORKDIR /repo
@@ -21,6 +21,8 @@ FROM node:22-alpine AS runtime
 RUN corepack enable
 WORKDIR /app
 COPY --from=build /app/exe ./
+# Segredos ausentes viram valores aleatórios por execução (clone limpo sem pnpm setup).
+COPY apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
 USER node
 EXPOSE 3001
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "./docker-entrypoint.sh"]

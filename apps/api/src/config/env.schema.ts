@@ -1,4 +1,4 @@
-// Validação do ambiente na inicialização — plan.md §config/env.schema.ts (T013/T027).
+// Valida o ambiente na inicialização e falha cedo para configurações inválidas.
 // Falhar aqui impede o boot com segredo fraco ou ausente (Princípio V da Constituição).
 import { z } from 'zod';
 
@@ -21,10 +21,12 @@ export const envSchema = z
     CSRF_SECRET: z
       .string()
       .min(SECRET_MIN_LENGTH, `CSRF_SECRET deve ter ao menos ${SECRET_MIN_LENGTH} caracteres.`),
+    // Ausente = derivado de NODE_ENV (Secure ligado em production).
+    // Explícito vence — o Compose local usa `false` porque serve http://localhost.
     COOKIE_SECURE: z
       .enum(['true', 'false'])
-      .default('false')
-      .transform((value) => value === 'true'),
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === 'true')),
 
     // --- CORS (origens explícitas, nunca '*') ---
     CORS_ORIGINS: z
@@ -37,10 +39,10 @@ export const envSchema = z
           .filter(Boolean),
       ),
 
-    // --- Rate limiting (T021) ---
+    // --- Rate limiting: limites configuráveis por ambiente ---
     THROTTLE_TTL_MS: z.coerce.number().int().positive().default(60_000),
-    THROTTLE_LIMIT: z.coerce.number().int().positive().default(120),
-    AUTH_THROTTLE_LIMIT: z.coerce.number().int().positive().default(5),
+    THROTTLE_LIMIT: z.coerce.number().int().positive().default(300),
+    AUTH_THROTTLE_LIMIT: z.coerce.number().int().positive().default(20),
     SCAN_THROTTLE_LIMIT: z.coerce.number().int().positive().default(10),
 
     // --- Upload de CRLV ---

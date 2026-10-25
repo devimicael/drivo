@@ -1,0 +1,1398 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conta criada; sessão emitida em cookie HttpOnly.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookie HttpOnly com o JWT de sessão.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "session"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "createdAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "session": {
+                      "type": "object",
+                      "required": [
+                        "expiresAt"
+                      ],
+                      "properties": {
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido."
+          },
+          "409": {
+            "description": "E-mail já cadastrado."
+          },
+          "429": {
+            "description": "Limite de tentativas por minuto excedido."
+          }
+        },
+        "summary": "Criar conta e iniciar sessão",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sessão emitida em cookie HttpOnly.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookie HttpOnly com o JWT de sessão.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "session"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "createdAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "session": {
+                      "type": "object",
+                      "required": [
+                        "expiresAt"
+                      ],
+                      "properties": {
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido."
+          },
+          "401": {
+            "description": "Credenciais inválidas."
+          },
+          "429": {
+            "description": "Limite de tentativas por minuto excedido."
+          }
+        },
+        "summary": "Autenticar",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Cookies de sessão e CSRF expirados.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Cookies de sessão e CSRF limpos.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "summary": "Encerrar a sessão e limpar os cookies",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Perfil público do usuário autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "summary": "Retornar a sessão autenticada",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/vehicles": {
+      "get": {
+        "operationId": "VehiclesController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de veículos e metadados da pesquisa.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "userId",
+                          "placa",
+                          "marca",
+                          "modelo",
+                          "ano",
+                          "chassi",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "userId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "placa": {
+                            "type": "string"
+                          },
+                          "marca": {
+                            "type": "string"
+                          },
+                          "modelo": {
+                            "type": "string"
+                          },
+                          "ano": {
+                            "type": "integer"
+                          },
+                          "chassi": {
+                            "type": "string"
+                          },
+                          "renavam": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "cor": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "combustivel": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "apelido": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "cilindrada": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "tipo": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "uf": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "anoFabricacao": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "total",
+                        "search"
+                      ],
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "search": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetro de busca inválido."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "tags": [
+          "vehicles"
+        ]
+      },
+      "post": {
+        "operationId": "VehiclesController_create",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Token double-submit do cookie CSRF.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "placa": {
+                    "type": "string"
+                  },
+                  "marca": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "modelo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "ano": {
+                    "type": "integer",
+                    "minimum": 1900,
+                    "maximum": 2027
+                  },
+                  "chassi": {
+                    "type": "string"
+                  },
+                  "renavam": {
+                    "nullable": true,
+                    "type": "string",
+                    "pattern": "^\\d{9,11}$"
+                  },
+                  "cor": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "combustivel": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "apelido": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "cilindrada": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 500,
+                    "maximum": 10000
+                  },
+                  "tipo": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "uf": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "anoFabricacao": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1900,
+                    "maximum": 2027
+                  }
+                },
+                "required": [
+                  "placa",
+                  "marca",
+                  "modelo",
+                  "ano",
+                  "chassi"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Veículo cadastrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "userId",
+                    "placa",
+                    "marca",
+                    "modelo",
+                    "ano",
+                    "chassi",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "placa": {
+                      "type": "string"
+                    },
+                    "marca": {
+                      "type": "string"
+                    },
+                    "modelo": {
+                      "type": "string"
+                    },
+                    "ano": {
+                      "type": "integer"
+                    },
+                    "chassi": {
+                      "type": "string"
+                    },
+                    "renavam": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "cor": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "combustivel": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "apelido": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "cilindrada": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "tipo": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "uf": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "anoFabricacao": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "409": {
+            "description": "A placa já pertence a outro veículo deste usuário."
+          },
+          "429": {
+            "description": "Limite de requisições excedido."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "tags": [
+          "vehicles"
+        ]
+      }
+    },
+    "/vehicles/{id}": {
+      "get": {
+        "operationId": "VehiclesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Veículo pertencente ao usuário autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "userId",
+                    "placa",
+                    "marca",
+                    "modelo",
+                    "ano",
+                    "chassi",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "placa": {
+                      "type": "string"
+                    },
+                    "marca": {
+                      "type": "string"
+                    },
+                    "modelo": {
+                      "type": "string"
+                    },
+                    "ano": {
+                      "type": "integer"
+                    },
+                    "chassi": {
+                      "type": "string"
+                    },
+                    "renavam": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "cor": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "combustivel": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "apelido": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "cilindrada": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "tipo": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "uf": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "anoFabricacao": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "404": {
+            "description": "Veículo inexistente ou pertencente a outra conta."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "tags": [
+          "vehicles"
+        ]
+      },
+      "patch": {
+        "operationId": "VehiclesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Token double-submit do cookie CSRF.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "placa": {
+                    "type": "string"
+                  },
+                  "marca": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "modelo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "ano": {
+                    "type": "integer",
+                    "minimum": 1900,
+                    "maximum": 2027
+                  },
+                  "chassi": {
+                    "type": "string"
+                  },
+                  "renavam": {
+                    "nullable": true,
+                    "type": "string",
+                    "pattern": "^\\d{9,11}$"
+                  },
+                  "cor": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "combustivel": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "apelido": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "cilindrada": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 500,
+                    "maximum": 10000
+                  },
+                  "tipo": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "uf": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "anoFabricacao": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1900,
+                    "maximum": 2027
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Veículo atualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "userId",
+                    "placa",
+                    "marca",
+                    "modelo",
+                    "ano",
+                    "chassi",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "placa": {
+                      "type": "string"
+                    },
+                    "marca": {
+                      "type": "string"
+                    },
+                    "modelo": {
+                      "type": "string"
+                    },
+                    "ano": {
+                      "type": "integer"
+                    },
+                    "chassi": {
+                      "type": "string"
+                    },
+                    "renavam": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "cor": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "combustivel": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "apelido": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "cilindrada": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "tipo": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "uf": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "anoFabricacao": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "404": {
+            "description": "Veículo inexistente ou pertencente a outra conta."
+          },
+          "409": {
+            "description": "A placa já pertence a outro veículo deste usuário."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "tags": [
+          "vehicles"
+        ]
+      },
+      "delete": {
+        "operationId": "VehiclesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Confirm-Delete",
+            "in": "header",
+            "description": "Deve ser exatamente true.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Token double-submit do cookie CSRF.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Veículo excluído."
+          },
+          "400": {
+            "description": "Confirmação ausente ou payload inválido."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "404": {
+            "description": "Veículo inexistente ou pertencente a outra conta."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "tags": [
+          "vehicles"
+        ]
+      }
+    },
+    "/vehicles/scan-crlv": {
+      "post": {
+        "operationId": "CrlvController_scan",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Token double-submit do cookie CSRF.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Campos extraídos para revisão; nenhum veículo é persistido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "extracted",
+                        "missingRequiredFields",
+                        "source"
+                      ],
+                      "properties": {
+                        "extracted": {
+                          "type": "object",
+                          "properties": {
+                            "placa": {
+                              "type": "string"
+                            },
+                            "marca": {
+                              "type": "string"
+                            },
+                            "modelo": {
+                              "type": "string"
+                            },
+                            "ano": {
+                              "type": "integer"
+                            },
+                            "chassi": {
+                              "type": "string"
+                            },
+                            "renavam": {
+                              "type": "string"
+                            },
+                            "cor": {
+                              "type": "string"
+                            },
+                            "combustivel": {
+                              "type": "string"
+                            },
+                            "cilindrada": {
+                              "type": "integer"
+                            },
+                            "tipo": {
+                              "type": "string"
+                            },
+                            "uf": {
+                              "type": "string"
+                            },
+                            "anoFabricacao": {
+                              "type": "integer"
+                            }
+                          }
+                        },
+                        "missingRequiredFields": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "placa",
+                              "marca",
+                              "modelo",
+                              "ano",
+                              "chassi"
+                            ]
+                          }
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "GEMINI"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Arquivo ausente, inválido ou acima de 5 MB."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "429": {
+            "description": "Limite de dez leituras por minuto excedido."
+          },
+          "502": {
+            "description": "Falha na leitura automática. Preencha manualmente."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "summary": "Lê campos de um CRLV sem criar o veículo",
+        "tags": [
+          "vehicles"
+        ]
+      }
+    },
+    "/users/me/password": {
+      "patch": {
+        "operationId": "UsersController_updatePassword",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Senha alterada; sessão atual permanece ativa."
+          },
+          "400": {
+            "description": "Senha atual incorreta ou nova senha inválida."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "summary": "Alterar a senha mediante confirmação da senha atual",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me": {
+      "patch": {
+        "operationId": "UsersController_updateMe",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Token double-submit do cookie CSRF.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil atualizado; não inclui senha nem hash.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nome inválido ou tentativa de alterar o e-mail."
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "404": {
+            "description": "Usuário da sessão não encontrado."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "summary": "Atualizar o nome do usuário autenticado",
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "DRIVO API",
+    "description": "Contrato executável. O contrato canônico de revisão vive em specs/001-drivo-vehicle-management/contracts/openapi.yaml.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Local (API + Swagger na mesma origem)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "drivo_session",
+        "description": "Sessão emitida por /auth/register ou /auth/login (HttpOnly). No Swagger UI o cookie é enviado automaticamente; fora dele use um cookie jar."
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "description": "Eco exato do cookie CSRF (drivo_csrf ou __Host-drivo_csrf). Necessário em POST/PATCH/DELETE autenticados."
+      }
+    },
+    "schemas": {}
+  }
+}

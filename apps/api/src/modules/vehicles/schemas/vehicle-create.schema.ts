@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   anoField,
   chassiField,
-  figmaPendingOptionalFields,
+  optionalVehicleFields,
   marcaField,
   modeloField,
   optionalCor,
@@ -19,7 +19,7 @@ export const vehicleCreateSchema = z
     chassi: chassiField,
     renavam: optionalRenavam,
     cor: optionalCor,
-    ...figmaPendingOptionalFields,
+    ...optionalVehicleFields,
   })
   // `.strict()`: userId/origem/chaves desconhecidas são recusados com 400 (RF16).
   .strict();

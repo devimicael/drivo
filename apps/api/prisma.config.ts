@@ -1,5 +1,4 @@
-// Configuração do Prisma 7 (ESM). A URL do banco vive AQUI, não no schema.
-// Fonte: plan.md §Technical Context (Prisma 7 + prisma.config.ts + driver adapter).
+// Prisma 7 mantém a URL do datasource neste arquivo, fora do schema.
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';

@@ -1,4 +1,4 @@
-// Config global validada por Zod — plan.md §config/config.module.ts (T013).
+// Configuração global validada por Zod.
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { parseEnv } from './env.schema.js';

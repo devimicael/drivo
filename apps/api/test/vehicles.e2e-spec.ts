@@ -49,6 +49,8 @@ interface VehiclePayload {
   tipo?: string;
   uf?: string;
   anoFabricacao?: number;
+  combustivel?: string;
+  apelido?: string;
 }
 
 let plateSeq = 0;
@@ -259,6 +261,12 @@ describe("Vehicles (e2e)", () => {
       .expect(200);
 
     expect((response.body.data as Vehicle[]).map((vehicle) => vehicle.id)).toContain(primary.id);
+
+    const foreignSearch = await request(app.getHttpServer())
+      .get("/vehicles?search=HB20")
+      .set("Cookie", `drivo_session=${userA.jar.session}`)
+      .expect(200);
+    expect(foreignSearch.body.data).toEqual([]);
   });
 
   it("GET /vehicles?search= compara ano exato de 4 dígitos (AC-06.3)", async () => {
@@ -312,16 +320,30 @@ describe("Vehicles (e2e)", () => {
     expect(foreign.body.error.code).toBe("NOT_FOUND");
     expect(missing.body.error.code).toBe(foreign.body.error.code);
     expect(malformed.body.error.code).toBe(foreign.body.error.code);
+    expect(foreign.body).toEqual(missing.body);
+
+    const unchangedForOwner = await request(app.getHttpServer())
+      .get(`/vehicles/${foreignVehicle.id}`)
+      .set("Cookie", `drivo_session=${userB.jar.session}`)
+      .expect(200);
+    expect(unchangedForOwner.body).toMatchObject({ id: foreignVehicle.id, marca: foreignVehicle.marca });
+    expect(foreign.body).toEqual(malformed.body);
   });
 
   it("PATCH /vehicles/:id atualiza apenas o dono (AC-08.1, AC-08.2)", async () => {
     const updated = await request(app.getHttpServer())
       .patch(`/vehicles/${primary.id}`)
       .set(authHeaders(userA.jar))
-      .send({ marca: "Fiat" })
+      .send({ marca: "Fiat", placa: `${primary.placa.toLowerCase().slice(0, 3)}-${primary.placa.toLowerCase().slice(3)}` })
       .expect(200);
 
-    expect(updated.body).toMatchObject({ id: primary.id, marca: "Fiat" });
+    expect(updated.body).toMatchObject({ id: primary.id, marca: "Fiat", placa: primary.placa });
+
+    const persisted = await request(app.getHttpServer())
+      .get(`/vehicles/${primary.id}`)
+      .set("Cookie", `drivo_session=${userA.jar.session}`)
+      .expect(200);
+    expect(persisted.body.marca).toBe("Fiat");
 
     const foreign = await request(app.getHttpServer())
       .patch(`/vehicles/${foreignVehicle.id}`)
@@ -330,6 +352,57 @@ describe("Vehicles (e2e)", () => {
       .expect(404);
 
     expect(foreign.body.error.code).toBe("NOT_FOUND");
+    expect(foreign.body).not.toHaveProperty("marca");
+    const missing = await request(app.getHttpServer())
+      .patch(`/vehicles/${randomUUID()}`)
+      .set(authHeaders(userA.jar))
+      .send({ marca: "Fiat" })
+      .expect(404);
+    expect(foreign.body).toEqual(missing.body);
+    const stillOwnedByB = await request(app.getHttpServer())
+      .get(`/vehicles/${foreignVehicle.id}`)
+      .set("Cookie", `drivo_session=${userB.jar.session}`)
+      .expect(200);
+    expect(stillOwnedByB.body.marca).toBe(foreignVehicle.marca);
+  });
+
+  it("PATCH valida cada campo como no cadastro e recusa PATCH vazio (AC-08.3)", async () => {
+    const invalid = await request(app.getHttpServer())
+      .patch(`/vehicles/${primary.id}`)
+      .set(authHeaders(userA.jar))
+      .send({ ano: 1800, chassi: "curto" })
+      .expect(400);
+    expect(invalid.body.error.code).toBe("VALIDATION_ERROR");
+    expect(invalid.body.error.details.map((detail: { path: string }) => detail.path)).toEqual(
+      expect.arrayContaining(["ano", "chassi"]),
+    );
+
+    const empty = await request(app.getHttpServer())
+      .patch(`/vehicles/${primary.id}`)
+      .set(authHeaders(userA.jar))
+      .send({})
+      .expect(400);
+    expect(empty.body.error.code).toBe("VALIDATION_ERROR");
+
+    const nullRequired = await request(app.getHttpServer())
+      .patch(`/vehicles/${primary.id}`)
+      .set(authHeaders(userA.jar))
+      .send({ placa: null })
+      .expect(400);
+    expect(nullRequired.body.error.code).toBe("VALIDATION_ERROR");
+
+    const setRenavam = await request(app.getHttpServer())
+      .patch(`/vehicles/${primary.id}`)
+      .set(authHeaders(userA.jar))
+      .send({ renavam: "12345678901" })
+      .expect(200);
+    expect(setRenavam.body.renavam).toBe("12345678901");
+    const clearRenavam = await request(app.getHttpServer())
+      .patch(`/vehicles/${primary.id}`)
+      .set(authHeaders(userA.jar))
+      .send({ renavam: null })
+      .expect(200);
+    expect(clearRenavam.body.renavam).toBeNull();
   });
 
   it("PATCH com placa já usada responde 409 (AC-08.3, P2002)", async () => {
@@ -342,17 +415,41 @@ describe("Vehicles (e2e)", () => {
     expect(response.body.error.code).toBe("PLATE_ALREADY_EXISTS");
   });
 
-  it("DELETE de veículo alheio responde 404; do dono, 204 (AC-09.4)", async () => {
+  it("DELETE exige confirmação, não revela veículos alheios e remove após confirmar (AC-09.2..4)", async () => {
     const foreign = await request(app.getHttpServer())
       .delete(`/vehicles/${foreignVehicle.id}`)
       .set(authHeaders(userA.jar))
+      .set("X-Confirm-Delete", "true")
       .expect(404);
 
     expect(foreign.body.error.code).toBe("NOT_FOUND");
+    const missing = await request(app.getHttpServer())
+      .delete(`/vehicles/${randomUUID()}`)
+      .set(authHeaders(userA.jar))
+      .set("X-Confirm-Delete", "true")
+      .expect(404);
+    expect(foreign.body).toEqual(missing.body);
+
+    await request(app.getHttpServer())
+      .get(`/vehicles/${foreignVehicle.id}`)
+      .set("Cookie", `drivo_session=${userB.jar.session}`)
+      .expect(200);
+
+    const unconfirmed = await request(app.getHttpServer())
+      .delete(`/vehicles/${secondary.id}`)
+      .set(authHeaders(userA.jar))
+      .expect(400);
+    expect(unconfirmed.body.error.code).toBe("CONFIRMATION_REQUIRED");
+
+    await request(app.getHttpServer())
+      .get(`/vehicles/${secondary.id}`)
+      .set("Cookie", `drivo_session=${userA.jar.session}`)
+      .expect(200);
 
     await request(app.getHttpServer())
       .delete(`/vehicles/${secondary.id}`)
       .set(authHeaders(userA.jar))
+      .set("X-Confirm-Delete", "true")
       .expect(204);
 
     await request(app.getHttpServer())
@@ -365,5 +462,24 @@ describe("Vehicles (e2e)", () => {
     const response = await request(app.getHttpServer()).get("/vehicles").expect(401);
 
     expect(response.body.error.code).toBe("UNAUTHORIZED");
+  });
+
+  it('persists the Figma fuel/nickname fields and allows clearing them on update', async () => {
+    const response = await request(app.getHttpServer()).post('/vehicles').set(authHeaders(userA.jar))
+      .send(vehiclePayload({ combustivel: 'Híbrido', apelido: 'Carro da família' })).expect(201);
+    expect(response.body).toMatchObject({ combustivel: 'Híbrido', apelido: 'Carro da família' });
+    const edited = await request(app.getHttpServer()).patch(`/vehicles/${response.body.id}`).set(authHeaders(userA.jar))
+      .send({ combustivel: null, apelido: null }).expect(200);
+    expect(edited.body).toMatchObject({ combustivel: null, apelido: null });
+  });
+
+  it('returns the same 404 for malformed identifiers, including confirmed deletion', async () => {
+    const missing = await request(app.getHttpServer()).get(`/vehicles/${randomUUID()}`).set(authHeaders(userA.jar)).expect(404);
+    for (const method of ['get', 'patch', 'delete'] as const) {
+      const response = await request(app.getHttpServer())[method]('/vehicles/not-a-uuid')
+        .set(authHeaders(userA.jar)).set('X-Confirm-Delete', 'true')
+        .send(method === 'patch' ? { modelo: 'Teste' } : undefined).expect(404);
+      expect(response.body).toEqual(missing.body);
+    }
   });
 });

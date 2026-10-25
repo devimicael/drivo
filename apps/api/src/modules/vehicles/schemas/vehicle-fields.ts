@@ -1,7 +1,4 @@
-// Campos compartilhados entre create/update — data-model.md §4.1/4.2.
-// PENDENTE Figma: os campos marcados abaixo (cilindrada, tipo, uf, anoFabricacao)
-// e a obrigatoriedade do chassi serão confirmados; estão isolados para ajuste em
-// um único ponto.
+// Campos e validações compartilhados entre cadastro e edição de veículos.
 import { z } from 'zod';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -42,7 +39,6 @@ export const anoField = z.coerce
   .min(1900, 'Informe um ano válido.')
   .max(MAX_YEAR, 'Informe um ano válido.');
 
-// PENDENTE Figma: obrigatoriedade em avaliação.
 export const chassiField = z
   .string()
   .trim()
@@ -80,8 +76,9 @@ const anoFabricacaoField = z.coerce
 export const optionalRenavam = z.preprocess(emptyToUndefined, renavamField.nullable().optional());
 export const optionalCor = z.preprocess(emptyToUndefined, corField.nullable().optional());
 
-// PENDENTE Figma: bloco que pode sair do DTO sem tocar no restante do schema.
-export const figmaPendingOptionalFields = {
+export const optionalVehicleFields = {
+  combustivel: z.preprocess(emptyToUndefined, z.string().trim().min(1).max(40).nullable().optional()),
+  apelido: z.preprocess(emptyToUndefined, z.string().trim().min(1).max(80).nullable().optional()),
   cilindrada: z.preprocess(emptyToUndefined, cilindradaField.nullable().optional()),
   tipo: z.preprocess(emptyToUndefined, tipoField.nullable().optional()),
   uf: z.preprocess(emptyToUndefined, ufField.nullable().optional()),
@@ -92,7 +89,9 @@ export const figmaPendingOptionalFields = {
 export const nullableRenavam = z.preprocess(emptyToUndefined, renavamField.nullable().optional());
 export const nullableCor = z.preprocess(emptyToUndefined, corField.nullable().optional());
 
-export const figmaPendingNullableFields = {
+export const nullableVehicleFields = {
+  combustivel: z.preprocess(emptyToUndefined, z.string().trim().min(1).max(40).nullable().optional()),
+  apelido: z.preprocess(emptyToUndefined, z.string().trim().min(1).max(80).nullable().optional()),
   cilindrada: z.preprocess(emptyToUndefined, cilindradaField.nullable().optional()),
   tipo: z.preprocess(emptyToUndefined, tipoField.nullable().optional()),
   uf: z.preprocess(emptyToUndefined, ufField.nullable().optional()),

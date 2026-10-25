@@ -1,4 +1,4 @@
-// Cliente HTTP centralizado — T022. Cookies sempre incluídos e CSRF ecoado.
+// Cliente HTTP centralizado; inclui cookies e ecoa o token CSRF.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 const CSRF_COOKIE_NAMES = ["drivo_csrf", "__Host-drivo_csrf"];
@@ -79,7 +79,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       body?.error?.details,
     );
 
-    // 401 global: limpa o estado e leva à entrada com aviso (AC-03.2 / T071).
+    // 401 global: limpa o estado da sessão e retorna à tela de login.
     if (response.status === 401 && shouldRedirectOnUnauthorized(path)) {
       redirectToLogin();
     }
@@ -93,6 +93,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 function shouldRedirectOnUnauthorized(path: string): boolean {
   if (typeof window === "undefined") {
     return false;
+  }
+  if (path === "/auth/me") {
+    return !["/login", "/cadastro"].includes(window.location.pathname);
   }
   if (path.startsWith("/auth/")) {
     return false;

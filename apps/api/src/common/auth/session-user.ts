@@ -5,7 +5,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  /** `jti` do JWT — amarra o token CSRF à sessão (research.md §7). */
+  /** Identificador único da sessão, usado para assinar o token CSRF. */
   jti: string;
 }
 

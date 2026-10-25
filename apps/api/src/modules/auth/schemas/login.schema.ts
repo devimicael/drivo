@@ -1,4 +1,4 @@
-// Espelho de data-model.md §4 e contracts/openapi.yaml (Login) — T030.
+// Validação dos campos aceitos no login.
 import { z } from 'zod';
 
 export const loginSchema = z

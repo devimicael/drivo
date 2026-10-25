@@ -1,6 +1,5 @@
-// Regra de aplicação da garagem — RF16: toda query filtra por `userId`.
-// Chassi/opcionais pendentes de Figma estão isolados em `schemas/vehicle-fields.ts`.
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+// Regras da garagem; todas as operações são isoladas por `userId`.
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { isUniqueConstraintError } from '../../common/prisma/is-unique-constraint-error.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
@@ -29,7 +28,7 @@ export class VehiclesService {
         or.push({ placa: { contains: placaTerm, mode: 'insensitive' } });
       }
 
-      // Ano só entra na busca quando o termo é exatamente 4 dígitos (AC-06.3).
+      // Ano só entra na busca quando o termo tem exatamente quatro dígitos.
       if (/^\d{4}$/.test(term)) {
         or.push({ ano: Number(term) });
       }
@@ -74,7 +73,7 @@ export class VehiclesService {
     }
 
     try {
-      return await this.prisma.vehicle.update({ where: { id: vehicle.id }, data: input });
+      return await this.prisma.vehicle.update({ where: { id: vehicle.id, userId }, data: input });
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         throw plateAlreadyExists();
@@ -83,19 +82,24 @@ export class VehiclesService {
     }
   }
 
-  async remove(userId: string, id: string): Promise<void> {
-    const vehicle = await this.findOwned(userId, id);
-
-    if (!vehicle) {
-      throw vehicleNotFound();
+  async remove(userId: string, id: string, confirmed: boolean): Promise<void> {
+    if (!UUID_PATTERN.test(id)) throw vehicleNotFound();
+    if (!confirmed) {
+      const vehicle = await this.findOwned(userId, id);
+      if (!vehicle) throw vehicleNotFound();
+      throw new BadRequestException({
+        code: 'CONFIRMATION_REQUIRED',
+        message: 'Confirme a exclusão do veículo para continuar.',
+      });
     }
 
-    await this.prisma.vehicle.delete({ where: { id: vehicle.id } });
+    const deleted = await this.prisma.vehicle.deleteMany({ where: { id, userId } });
+    if (deleted.count === 0) throw vehicleNotFound();
   }
 
   /**
    * Id malformado, inexistente ou de outro usuário devolvem a mesma coisa (null),
-   * para que o controller responda um único 404 (AC-05.3, AC-08.2, AC-09.4).
+   * para que o controller responda com um único 404.
    * O teste de formato evita mandar lixo para uma coluna UUID no Postgres.
    */
   private findOwned(userId: string, id: string) {

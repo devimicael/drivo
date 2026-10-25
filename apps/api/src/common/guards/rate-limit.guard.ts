@@ -1,7 +1,6 @@
-// Rate limiting em memória — T021/T032 (plan.md §Strategy).
-// `@nestjs/throttler@6.7.1` é CJS e incompatível com o runner Jest-ESM deste
-// monorepo (ver nota em auth.controller.ts), então o guard é próprio: janela
-// deslizante por IP, limite global e overrides por chave de configuracao.
+// Rate limit por IP com janela deslizante e limites configuráveis.
+// O guard próprio oferece janela deslizante por IP, limite global e overrides
+// por chave de configuração, mantendo o comportamento testável no runner ESM.
 import {
   CanActivate,
   ExecutionContext,

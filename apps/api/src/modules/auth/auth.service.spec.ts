@@ -102,7 +102,7 @@ describe('AuthService', () => {
 
     const persisted = createArgs[0];
 
-    // PHC com os parâmetros fixados (research.md §5 / P-03).
+    // O hash PHC registra a versão e os parâmetros Argon2id configurados.
     expect(persisted?.data.passwordHash).toMatch(/^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
     expect(persisted?.data.passwordHash).not.toContain(PASSWORD);
     expect(await verify(persisted?.data.passwordHash ?? '', PASSWORD)).toBe(true);

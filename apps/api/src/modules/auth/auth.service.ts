@@ -1,23 +1,15 @@
-// Regra de aplicação da autenticação — T031.
-// Hash Argon2id com parâmetros explícitos (research.md §5, P-03 fechado).
+// Regras de cadastro, login e sessão.
 import { randomUUID } from 'node:crypto';
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { hash, verify, type Options } from '@node-rs/argon2';
+import { hash, verify } from '@node-rs/argon2';
+import { ARGON2_OPTIONS } from '../../common/auth/password-options.js';
 import { isUniqueConstraintError } from '../../common/prisma/is-unique-constraint-error.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import type { LoginInput } from './schemas/login.schema.js';
 import type { UserCreateInput } from './schemas/user-create.schema.js';
-
-/** Parâmetros OWASP Argon2id fixados: m=19 MiB, t=2, p=1, saída de 32 bytes. */
-const ARGON2_OPTIONS: Options = {
-  memoryCost: 19_456,
-  timeCost: 2,
-  parallelism: 1,
-  outputLen: 32,
-};
 
 /** Hash descartável para equalizar o tempo de resposta de e-mail inexistente (RN-11). */
 const TIMING_EQUALIZATION_PASSWORD = 'drivo-timing-equalization';
@@ -71,7 +63,7 @@ export class AuthService {
       return { user, session: await this.issueSession(user) };
     } catch (error) {
       if (isUniqueConstraintError(error)) {
-        // Mesma mensagem sempre; nada da conta existente é revelado (AC-01.2, RN-11).
+        // Não revelar se a conta já existe.
         throw new ConflictException({
           code: 'EMAIL_ALREADY_IN_USE',
           message: 'Este e-mail já está em uso.',
@@ -89,7 +81,7 @@ export class AuthService {
 
     if (!user) {
       // Verifica contra um hash descartável: e-mail inexistente e senha errada
-      // levam o mesmo tempo e a mesma resposta (AC-02.2, RN-11).
+      // mantêm o mesmo tempo de resposta.
       await verify(await this.getDummyHash(), input.password);
       throw invalidCredentials();
     }

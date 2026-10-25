@@ -15,3 +15,9 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - material-symbols@0.48.1
   - vite@8.3.5
+
+# Correções de segurança (pnpm audit): versões corrigidas de dependências
+# transitivas (body-parser via express, multer via @nestjs/platform-express).
+overrides:
+  body-parser: 2.4.0
+  multer: 2.5.0

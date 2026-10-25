@@ -8,11 +8,9 @@ process.env.JWT_SECRET = 'teste-jwt-secret-com-32-caracteres!!';
 process.env.CSRF_SECRET = 'teste-csrf-secret-com-32-caracteres!';
 process.env.CORS_ORIGINS = 'http://localhost:3000';
 process.env.COOKIE_SECURE = 'false';
+// Mesmo com chave local configurada, a suíte determinística nunca usa o Gemini real.
+process.env.GOOGLE_API_KEY = '';
 // A suíte dispara várias tentativas seguidas em /auth/*: eleva os limites para
 // que o rate limiter não transforme casos de teste em 429.
-process.env.THROTTLE_LIMIT = '10000';
-process.env.AUTH_THROTTLE_LIMIT = '1000';
-// Rate limit gerado para testes: as suítes em e2e fazem dezenas de chamadas
-// do mesmo IP dentro da janela; guard já é coberto por unit (rate-limit.guard.spec).
 process.env.THROTTLE_LIMIT = '1000';
 process.env.AUTH_THROTTLE_LIMIT = '50';

@@ -1,4 +1,4 @@
-// Guard JWT próprio (sem passport) — research.md §6, T018.
+// Guard de sessão JWT com cookies, sem dependência de Passport.
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
@@ -46,7 +46,7 @@ export class JwtAuthGuard implements CanActivate {
 
       return true;
     } catch {
-      // Mensagem idêntica para token ausente, inválido ou expirado (AC-02.4).
+      // Use a mesma mensagem para token ausente, inválido ou expirado.
       throw new UnauthorizedException('Sessão ausente, inválida ou expirada.');
     }
   }

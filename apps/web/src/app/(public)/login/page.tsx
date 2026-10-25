@@ -8,9 +8,14 @@ export const metadata: Metadata = {
   title: "Entrar — DRIVO",
 };
 
-async function LoginCard({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
+async function LoginCard({
+  searchParams,
+}: {
+  searchParams: PageProps<"/login">["searchParams"];
+}) {
   const { expirada } = await searchParams;
-  const sessionExpired = expirada === "1" || (Array.isArray(expirada) && expirada.includes("1"));
+  const sessionExpired =
+    expirada === "1" || (Array.isArray(expirada) && expirada.includes("1"));
 
   return <LoginForm sessionExpired={sessionExpired} />;
 }
@@ -31,7 +36,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       />
 
       {/* Coluna direita: formulário centralizado + link de cadastro fixo no rodapé. */}
-      <section className="flex min-h-dvh flex-col lg:min-h-0">
+      <section className="relative flex min-h-dvh flex-col lg:min-h-0">
         <div className="flex flex-1 items-center justify-center px-6 py-12">
           <Suspense
             fallback={
@@ -45,7 +50,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
           </Suspense>
         </div>
 
-        <footer className="pb-7 text-center text-sm text-muted">
+        <footer className="pb-16 text-center text-sm text-muted lg:absolute lg:inset-x-0 lg:bottom-0">
           Ainda não tem conta?{" "}
           <Link
             href="/cadastro"

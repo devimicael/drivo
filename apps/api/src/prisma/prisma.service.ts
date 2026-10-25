@@ -1,4 +1,4 @@
-// Único ponto de acesso ao banco (plan.md §Responsabilidades por camada).
+// Único ponto de acesso da aplicação ao banco.
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';

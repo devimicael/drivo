@@ -1,4 +1,4 @@
-// Espelho de data-model.md §4 e contracts/openapi.yaml (UserCreate) — T030.
+// Validação dos campos aceitos no cadastro de usuário.
 import { z } from 'zod';
 
 export const userCreateSchema = z

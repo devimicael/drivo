@@ -1,4 +1,4 @@
-// Formato único de erro — contracts/README.md §4 (T016).
+// Converte exceções em um envelope JSON consistente.
 import {
   ArgumentsHost,
   Catch,
@@ -43,8 +43,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
 
+    // Multer rejects oversized streams before the controller or ParseFilePipe run.
+    if (isMulterSizeError(exception)) {
+      response.status(HttpStatus.BAD_REQUEST).json({
+        error: { code: 'FILE_TOO_LARGE', message: 'O arquivo deve ter até 5 MB.' },
+      });
+      return;
+    }
+
     if (exception instanceof HttpException) {
-      const status = exception.getStatus();
+      const originalStatus = exception.getStatus();
+      if (originalStatus === HttpStatus.PAYLOAD_TOO_LARGE) {
+        response.status(HttpStatus.BAD_REQUEST).json({
+          error: { code: 'FILE_TOO_LARGE', message: 'O arquivo deve ter até 5 MB.' },
+        });
+        return;
+      }
+      const status = originalStatus;
       const body = exception.getResponse();
       const normalized: ErrorBody = typeof body === 'string' ? { message: body } : (body as ErrorBody);
 
@@ -78,4 +93,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       },
     });
   }
+}
+
+function isMulterSizeError(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'name' in error && error.name === 'MulterError' && 'code' in error && error.code === 'LIMIT_FILE_SIZE');
 }

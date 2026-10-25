@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   anoField,
   chassiField,
-  figmaPendingNullableFields,
+  nullableVehicleFields,
   marcaField,
   modeloField,
   nullableCor,
@@ -17,11 +17,10 @@ export const vehicleUpdateSchema = z
     marca: marcaField.optional(),
     modelo: modeloField.optional(),
     ano: anoField.optional(),
-    // PENDENTE Figma: obrigatoriedade em avaliação.
     chassi: chassiField.optional(),
     renavam: nullableRenavam,
     cor: nullableCor,
-    ...figmaPendingNullableFields,
+    ...nullableVehicleFields,
   })
   .strict()
   .refine((value) => Object.keys(value).length > 0, {

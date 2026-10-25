@@ -1,12 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Logo } from "@/components/ui/Logo";
 import { useRegister } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
-import { registerSchema, type RegisterFormValues } from "@/schemas/auth.schema";
+import { registerFormSchema, type RegisterFormValues } from "@/schemas/auth.schema";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -18,8 +21,8 @@ export function RegisterForm() {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
   const serverError =
@@ -44,98 +47,68 @@ export function RegisterForm() {
   }
 
   return (
-    <section className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-zinc-950">
-      <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Cadastre-se para começar a organizar sua garagem.
-      </p>
+    <div className="w-full max-w-[360px]">
+      <header className="flex flex-col items-center text-center">
+        <Logo width={80} />
+        <h1 className="mt-8 text-[32px] leading-[1.15] font-bold tracking-[-0.8px] text-foreground">
+          Criar sua conta
+        </h1>
+        <p className="mt-2 max-w-[320px] text-[15px] leading-[1.45] text-muted">
+          Leva menos de um minuto. Depois é só adicionar seus veículos.
+        </p>
+      </header>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="name" className="text-sm font-medium">
-            Nome
-          </label>
-          <input
-            id="name"
-            type="text"
-            autoComplete="name"
-            aria-invalid={Boolean(errors.name)}
-            aria-describedby={errors.name ? "name-error" : undefined}
-            className="h-11 rounded-lg border border-black/15 bg-transparent px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 dark:border-white/20 dark:focus-visible:ring-zinc-100"
-            {...register("name")}
-          />
-          {errors.name ? (
-            <p id="name-error" className="text-sm text-red-600 dark:text-red-400">
-              {errors.name.message}
-            </p>
-          ) : null}
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-8 flex flex-col gap-3">
+        <Input
+          id="name"
+          label="Nome completo"
+          type="text"
+          autoComplete="name"
+          placeholder="Mariana Costa"
+          error={errors.name?.message}
+          {...register("name")}
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-sm font-medium">
-            E-mail
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            className="h-11 rounded-lg border border-black/15 bg-transparent px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 dark:border-white/20 dark:focus-visible:ring-zinc-100"
-            {...register("email")}
-          />
-          {errors.email ? (
-            <p id="email-error" className="text-sm text-red-600 dark:text-red-400">
-              {errors.email.message}
-            </p>
-          ) : null}
-        </div>
+        <Input
+          id="email"
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          placeholder="mariana.costa@email.com"
+          error={errors.email?.message}
+          {...register("email")}
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className="text-sm font-medium">
-            Senha
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "password-error" : "password-hint"}
-            className="h-11 rounded-lg border border-black/15 bg-transparent px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 dark:border-white/20 dark:focus-visible:ring-zinc-100"
-            {...register("password")}
-          />
-          {errors.password ? (
-            <p id="password-error" className="text-sm text-red-600 dark:text-red-400">
-              {errors.password.message}
-            </p>
-          ) : (
-            <p id="password-hint" className="text-sm text-zinc-500 dark:text-zinc-400">
-              Mínimo de 8 caracteres.
-            </p>
-          )}
-        </div>
+        <Input
+          id="password"
+          label="Senha"
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••••••"
+          error={errors.password?.message}
+          {...register("password")}
+        />
 
-        <div aria-live="polite">
-          {serverError ? (
-            <p className="text-sm text-red-600 dark:text-red-400">{serverError}</p>
-          ) : null}
-        </div>
+        <Input
+          id="confirmPassword"
+          label="Confirmar senha"
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••••••"
+          error={errors.confirmPassword?.message}
+          {...register("confirmPassword")}
+        />
 
-        <button
-          type="submit"
-          disabled={isBusy}
-          className="h-11 rounded-lg bg-foreground text-background font-medium transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isBusy ? "Criando conta…" : "Criar conta"}
-        </button>
+        {serverError ? (
+          <p aria-live="polite" className="text-center text-sm text-danger">
+            {serverError}
+          </p>
+        ) : null}
+
+        <Button type="submit" loading={isBusy} className="mt-4">
+          Criar conta
+        </Button>
       </form>
-
-      <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">
-        Já tem conta?{" "}
-        <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
-          Entrar
-        </Link>
-      </p>
-    </section>
+    </div>
   );
 }

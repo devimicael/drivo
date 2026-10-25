@@ -1,4 +1,4 @@
-// Teste unitário do rate limiter — T021/T032 (janela, limite, buckets e 429).
+// Testes unitários da janela, dos limites, dos buckets e da resposta 429.
 // Sem mocks de `jest` global (ESM-VM): stubs manuais e janela curta real.
 import 'reflect-metadata';
 import { ConfigService } from '@nestjs/config';
@@ -74,7 +74,7 @@ function makeGuard(stubs: ReturnType<typeof makeStubs>): RateLimitGuard {
 }
 
 describe('RateLimitGuard', () => {
-  it('admite até o limite e rejeita o excedente com 429 RATE_LIMITED (T032)', () => {
+  it('admite até o limite e rejeita o excedente com 429 RATE_LIMITED', () => {
     const stubs = makeStubs();
     const guard = makeGuard(stubs);
     const { context, headers } = makeContext();

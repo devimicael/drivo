@@ -22,6 +22,13 @@ function cookieHeader(response: request.Response): string {
   return session.split(';')[0] ?? '';
 }
 
+function cookiePair(response: request.Response, name: string): string {
+  const cookies = response.headers['set-cookie'] as unknown as string[] | undefined;
+  const cookie = cookies?.find((value) => value.startsWith(`${name}=`));
+  if (!cookie) throw new Error(`Cookie ${name} ausente na resposta.`);
+  return cookie.split(';')[0] ?? '';
+}
+
 describe('Auth (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -139,5 +146,29 @@ describe('Auth (e2e)', () => {
       });
 
     await request(app.getHttpServer()).get('/auth/me').expect(401);
+  });
+
+  it('logout limpa cookies de sessão e CSRF; as rotas privadas passam a retornar 401 (AC-03.1..3)', async () => {
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('Origin', ORIGIN)
+      .send({ email: EMAIL, password: PASSWORD })
+      .expect(200);
+    const session = cookiePair(login, 'drivo_session');
+    const csrfCookie = cookiePair(login, 'drivo_csrf');
+    const csrf = decodeURIComponent(csrfCookie.slice('drivo_csrf='.length));
+
+    const logout = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Origin', ORIGIN)
+      .set('Cookie', `${session}; ${csrfCookie}`)
+      .set('X-CSRF-Token', csrf)
+      .expect(204);
+    const clearedCookies = logout.headers['set-cookie'] as unknown as string[];
+    expect(clearedCookies.find((cookie) => cookie.startsWith('drivo_session='))).toMatch(/Expires=Thu, 01 Jan 1970/i);
+    expect(clearedCookies.find((cookie) => cookie.startsWith('drivo_csrf='))).toMatch(/Expires=Thu, 01 Jan 1970/i);
+
+    await request(app.getHttpServer()).get('/auth/me').expect(401);
+    await request(app.getHttpServer()).get('/vehicles').expect(401);
   });
 });

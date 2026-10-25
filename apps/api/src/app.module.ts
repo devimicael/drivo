@@ -7,6 +7,8 @@ import { RateLimitGuard } from './common/guards/rate-limit.guard.js';
 import { AppConfigModule } from './config/config.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { VehiclesModule } from './modules/vehicles/vehicles.module.js';
+import { CrlvModule } from './modules/crlv/crlv.module.js';
+import { UsersModule } from './modules/users/users.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -17,6 +19,8 @@ import { AppService } from './app.service.js';
     PrismaModule,
     AuthModule,
     VehiclesModule,
+    CrlvModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

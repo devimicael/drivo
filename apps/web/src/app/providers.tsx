@@ -8,5 +8,7 @@ export function Providers({ children }: { children: ReactNode }) {
   // `useState` com inicializador: um QueryClient por árvore, sem recriar a cada render.
   const [queryClient] = useState(createQueryClient);
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }

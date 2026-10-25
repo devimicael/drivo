@@ -1,32 +1,33 @@
-# drivo — monorepo root gitignore
+# Dependências do workspace pnpm
+**/node_modules/
+**/.pnpm-store/
 
-# Dependências
-node_modules/
-.pnpm-store/
-
-# Build outputs
-.next/
-out/
-dist/
-*.tsbuildinfo
-
-# Prisma (artefato gerado — commitado via migration, nunca o client)
+# Builds e artefatos gerados
+**/.next/
+**/out/
+**/dist/
+**/build/
+**/*.tsbuildinfo
+# Prisma Client gerado; migrations permanecem versionadas
 apps/api/src/generated/
 
-# Ambientes — nenhum segredo versionado
-.env
-.env.*
-!.env.example
+# Ambientes locais e segredos
+**/.env
+**/.env.*
+!**/.env.example
 
-# Testes
-coverage/
-.nyc_output/
+# Cobertura e relatórios de teste
+**/coverage/
+**/.nyc_output/
+**/test-results/
+**/playwright-report/
 
-# Backups e sistema
+# Arquivos locais de ferramentas e do sistema
+.impeccable/
+.security-tests/
 .git.backup-*/
-.DS_Store
+**/.DS_Store
 Thumbs.db
+*.log
 npm-debug.log*
 pnpm-debug.log*
-
-# Next.js (next-env.d.ts DEVE ser commitado no Next 16)

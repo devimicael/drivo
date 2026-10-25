@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/auth";
 import type { LoginFormValues, RegisterFormValues } from "@/schemas/auth.schema";
+import { usersService } from "@/services/users";
+import type { ProfileUpdateInput } from "@/schemas/profile.schema";
 
 const SESSION_QUERY_KEY = ["auth", "me"] as const;
 
@@ -45,6 +47,17 @@ export function useLogout() {
     mutationFn: () => authService.logout(),
     onSuccess: () => {
       queryClient.clear();
+    },
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ProfileUpdateInput) => usersService.updateProfile(input),
+    onSuccess: async (user) => {
+      queryClient.setQueryData(SESSION_QUERY_KEY, user);
+      await queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY });
     },
   });
 }

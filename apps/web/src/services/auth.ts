@@ -1,6 +1,6 @@
-// Operações de autenticação — T034. Sem `fetch` direto fora de lib/api.ts.
+// Operações de autenticação; o transporte centralizado fica em lib/api.ts.
 import { apiFetch } from "@/lib/api";
-import type { LoginFormValues, RegisterFormValues } from "@/schemas/auth.schema";
+import type { LoginFormValues, RegisterPayload } from "@/schemas/auth.schema";
 
 export interface User {
   id: string;
@@ -15,13 +15,13 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  register(input: RegisterFormValues): Promise<AuthResponse> {
+  register(input: RegisterPayload): Promise<AuthResponse> {
     return apiFetch<AuthResponse>("/auth/register", {
       method: "POST",
       body: JSON.stringify({
-        ...input,
         name: input.name.trim(),
         email: input.email.trim().toLowerCase(),
+        password: input.password,
       }),
     });
   },

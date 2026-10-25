@@ -1,0 +1,48 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Length 982 >>
+stream
+BT /F1 16 Tf 48 790 Td (CRLV - DOCUMENTO DE TESTE) Tj ET
+BT /F1 13 Tf 48 758 Td (SIMULADO - SEM VALIDADE LEGAL - DADOS FICTICIOS) Tj ET
+BT /F1 14 Tf 48 715 Td (VEICULO C - FORD RANGER) Tj ET
+BT /F1 12 Tf 48 680 Td (PLACA: TST2B03) Tj ET
+BT /F1 12 Tf 48 646 Td (RENAVAM: 98765432103) Tj ET
+BT /F1 12 Tf 48 612 Td (CHASSI: 8AFAR23L0MJ000024) Tj ET
+BT /F1 12 Tf 48 578 Td (MARCA: Ford) Tj ET
+BT /F1 12 Tf 48 544 Td (MODELO: Ranger XLS) Tj ET
+BT /F1 12 Tf 48 510 Td (ANO DE FABRICACAO: 2020) Tj ET
+BT /F1 12 Tf 48 476 Td (ANO DO MODELO: 2021) Tj ET
+BT /F1 12 Tf 48 442 Td (COR: Branco) Tj ET
+BT /F1 12 Tf 48 408 Td (COMBUSTIVEL: Diesel) Tj ET
+BT /F1 12 Tf 48 374 Td (CILINDRADA: 3200) Tj ET
+BT /F1 12 Tf 48 340 Td (TIPO: Camionete) Tj ET
+BT /F1 12 Tf 48 306 Td (UF: MT) Tj ET
+BT /F1 10 Tf 48 180 Td (Arquivo criado exclusivamente para teste manual da importacao.) Tj ET
+BT /F1 9 Tf 48 162 Td (Nao representa documento oficial e nao deve ser usado para qualquer finalidade legal.) Tj ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000338 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1370
+%%EOF

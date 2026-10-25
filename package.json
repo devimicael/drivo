@@ -16,6 +16,7 @@
     "test:e2e": "pnpm --filter drivo-api test:e2e",
     "test:cov": "pnpm --filter drivo-api test:cov",
     "test:web": "pnpm --filter drivo-web test",
+    "verify:gemini": "node scripts/verify-gemini.mjs",
     "db:generate": "pnpm --filter drivo-api prisma:generate",
     "db:migrate": "pnpm --filter drivo-api prisma:deploy",
     "db:migrate:dev": "pnpm --filter drivo-api exec prisma migrate dev"

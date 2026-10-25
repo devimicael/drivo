@@ -12,13 +12,13 @@ const paths = tsconfig?.compilerOptions?.paths ?? {};
 
 const config: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
+  extensionsToTreatAsEsm: ['.ts'],
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
-  // Envs de teste ANTES de qualquer import: `ConfigModule.forRoot` resolve o
-  // ambiente na avaliação do decorator do AppModule (ver plan.md §config).
+  // Define o ambiente de teste antes de importar os módulos da aplicação.
   setupFiles: ['<rootDir>/test/setup.ts'],
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': ['ts-jest', { useESM: true }],
   },
   moduleNameMapper: {
     // ESM nodenext: imports relativos terminam em `.js`, mas os arquivos são `.ts`.

@@ -7,7 +7,7 @@ import { CookieService } from './cookie.service.js';
 
 @Module({
   imports: [
-    // `global: true`: o JwtAuthGuard é registrado no AppModule via APP_GUARD (T018).
+    // O módulo fornece o JwtService global usado pelo guard de sessão.
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

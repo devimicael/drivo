@@ -1,0 +1,18 @@
+{
+  "verifiedAt": "2026-10-24T23:19:14.088Z",
+  "durationMs": 4318,
+  "fixture": "crlv-sintetico.pdf (sem dados pessoais)",
+  "provider": "Gemini real",
+  "checks": [
+    "cadastro",
+    "extração real de PDF",
+    "nenhuma persistência antes de confirmar",
+    "revisão e criação explícita",
+    "busca com hífen",
+    "edição",
+    "exclusão exige confirmação",
+    "perfil",
+    "logout"
+  ],
+  "result": "passed"
+}

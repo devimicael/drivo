@@ -1,8 +1,5 @@
-// Modelo por data-model.md §5. Referência transformada em migration inicial
-// pelo Dia 1 (T008). URL do banco vive em prisma.config.ts (Prisma 7).
-// Sem entidade de CRLV/arquivo/imageUrl — RF17, RN-02. Sem `combustivel` (P-08 fechado).
-// Busca de veículos usa `contains`/`mode: insensitive` (sem colunas derivadas).
-// `origem` volta junto com o import de CRLV (fora de escopo nesta etapa).
+// Modelos persistidos. A URL do datasource é configurada em prisma.config.ts.
+// Arquivos CRLV não são armazenados; os dados extraídos são revisados antes de salvar.
 
 generator client {
   provider = "prisma-client"
@@ -36,6 +33,8 @@ model Vehicle {
   chassi        String   @db.VarChar(17)
   renavam       String?  @db.VarChar(20)
   cor           String?  @db.VarChar(40)
+  combustivel   String?  @db.VarChar(40)
+  apelido       String?  @db.VarChar(80)
   cilindrada    Int?
   tipo          String?  @db.VarChar(40)
   uf            String?  @db.Char(2)

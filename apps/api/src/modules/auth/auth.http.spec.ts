@@ -146,6 +146,27 @@ describe('Auth (HTTP)', () => {
     expect(response.body.error.code).toBe('FORBIDDEN');
   });
 
+  it('aceita mutação da própria origem da API (Try it out do Swagger)', async () => {
+    // O Swagger UI é servido pela API: Origin e Host coincidem.
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('Host', 'localhost:3001')
+      .set('Origin', 'http://localhost:3001')
+      .send({ email: EMAIL, password: PASSWORD })
+      .expect(200);
+  });
+
+  it('rejeita origem estranha mesmo com Host da própria API', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('Host', 'localhost:3001')
+      .set('Origin', 'http://evil.example')
+      .send({ email: EMAIL, password: PASSWORD })
+      .expect(403);
+
+    expect(response.body.error.code).toBe('FORBIDDEN');
+  });
+
   it('login 200 e GET /auth/me 200 com o cookie da sessão', async () => {
     const login = await request(app.getHttpServer())
       .post('/auth/login')

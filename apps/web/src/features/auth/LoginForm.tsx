@@ -46,9 +46,11 @@ export function LoginForm({ sessionExpired = false }: { sessionExpired?: boolean
   return (
     <div className="w-full max-w-[360px]">
       <header className="flex flex-col items-center text-center">
-        <Logo width={64} />
-        <h1 className="mt-5 text-[22px] font-bold text-foreground">Entrar no Drivo</h1>
-        <p className="mt-1.5 max-w-[280px] text-sm text-muted">
+        <Logo width={80} />
+        <h1 className="mt-8 text-[32px] leading-[1.15] font-bold tracking-[-0.8px] text-foreground">
+          Entrar no Drivo
+        </h1>
+        <p className="mt-2 max-w-[320px] text-[15px] leading-[1.45] text-muted">
           Seus veículos, documentos e dados em um só lugar.
         </p>
       </header>
@@ -81,13 +83,13 @@ export function LoginForm({ sessionExpired = false }: { sessionExpired?: boolean
         />
 
         {/* Erro da API (401) — anunciado sem recarregar a página. */}
-        <div aria-live="polite">
-          {serverError ? (
-            <p className="text-center text-sm text-danger">{serverError}</p>
-          ) : null}
-        </div>
+        {serverError ? (
+          <p aria-live="polite" className="text-center text-sm text-danger">
+            {serverError}
+          </p>
+        ) : null}
 
-        <Button type="submit" loading={isBusy} className="mt-4">
+        <Button type="submit" loading={isBusy} className="mt-4 lg:mt-6">
           Entrar
         </Button>
       </form>

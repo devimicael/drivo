@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #000000;
+  --foreground: #f5f5f7;
 }
 
 /*
@@ -14,32 +15,126 @@
   --color-foreground: var(--foreground);
 
   /*
-   * Mundo escuro das telas de autenticação (Figma). Superfícies iOS-nomeadas
-   * (HIG dark): preto puro de fundo, systemGray5 (#2C2C2E) nos campos e
-   * systemBlue (#0A84FF) como accent. A conferência com o fill exato do
-   * Dev Mode do Figma está pendente na US de fidelidade (2026-10-24).
+   * Mundo escuro do Figma (Design System, node 1-1664). Superfícies iOS-nomeadas
+   * (HIG dark): preto puro de fundo, camadas surface → surface-4, systemBlue
+   * (#0A84FF) como accent. Valores conferidos no quadro "Cores" em 2026-10-24.
    */
   --color-surface: #000000;
+  --color-raised: #1c1c1e;
   --color-field: #2c2c2e;
-  --color-muted: #9aa0a8;
-  --color-bright: #c8ccd2;
+  --color-elevated: #3a3a3c;
+  --color-strong: #48484a;
+  --color-separator: #38383a;
+  --color-muted: #a1a1a6;
+  --color-bright: #f5f5f7;
+  --color-tertiary: #6e6e73;
   --color-primary: #0a84ff;
-  --color-primary-hover: #459cff;
-  --color-danger: #f4676d;
+  --color-primary-hover: #3395ff;
+  --color-primary-pressed: #0071e3;
+  --color-danger: #ff453a;
+  --color-success: #32d74b;
+  --color-warning: #ff9f0a;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Medidas conferidas no painel do Figma: Main, Hero e Content. */
+  --spacing: 4px;
+  --spacing-page: 80px;
+  --spacing-section: 32px;
+  --radius-card: 20px;
+  --radius-panel: 16px;
+  --radius-input: 12px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+button:not(:disabled),
+a[href],
+summary,
+select {
+  cursor: pointer;
+}
+
+a[href] {
+  transition-property: color, background-color, border-color, text-decoration-color;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes backdrop-enter {
+  from { background-color: rgb(0 0 0 / 0%); }
+  to { background-color: rgb(0 0 0 / 75%); }
+}
+
+@keyframes dialog-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(2px) scale(0.99);
+  }
+}
+
+@keyframes backdrop-exit {
+  from { background-color: rgb(0 0 0 / 75%); }
+  to { background-color: rgb(0 0 0 / 0%); }
+}
+
+dialog[open] {
+  animation: dialog-enter 160ms ease-out both;
+}
+
+dialog[open]::backdrop {
+  animation: backdrop-enter 160ms ease-out both;
+}
+
+dialog[data-closing="true"] {
+  animation: dialog-exit 140ms ease-in both;
+}
+
+dialog[data-closing="true"]::backdrop {
+  animation: backdrop-exit 140ms ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  button,
+  article {
+    transform: none !important;
+  }
+
+  dialog[open],
+  dialog[open]::backdrop {
+    animation: none !important;
+  }
 }
